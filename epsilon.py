@@ -114,7 +114,7 @@ def decrypt_symetric(msg:bytes, key:bytes, iv:bytes) -> bytes:
 NOT_FOR_YOU = '0'.encode()
 YES_FOR_YOU = '1'.encode()
 
-# TODO all successfully decoded messages should go to a folder instead of using a callback
+# TODO all messages that are meant for us should go to a folder instead of using a callback
 def handle_incoming(buck_sock:Bucket, port:int, private_key:Private_key, on_recv:Callable[[bytes],None]) -> None:
 
     sock = socket.socket()
