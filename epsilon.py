@@ -108,11 +108,14 @@ def decrypt_symetric(msg:bytes, key:bytes, iv:bytes) -> bytes:
     return decrypted
 
 ######
-###### handle incoming
+###### handle incoming messages
 ######
 
 NOT_FOR_YOU = '0'.encode()
 YES_FOR_YOU = '1'.encode()
+
+# RECEIVE_MSG_MAX_SIZE = 1024 * 1024 * 50 # in bytes
+# # TODO actually implement
 
 # TODO all messages that are meant for us should go to a folder instead of using a callback
 def handle_incoming(buck_sock:Bucket, port:int, private_key:Private_key, on_recv:Callable[[bytes],None]) -> None:
