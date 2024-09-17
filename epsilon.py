@@ -120,7 +120,7 @@ def decrypt_symetric(msg:bytes, key:bytes, iv:bytes) -> bytes:
 # # TODO actually implement
 
 CMD_SEND = b'0'
-CMD_SEND_SEP = b';'
+CMD_SEND_SEP = b':'
 
 CMD_PUSH = b'1'
 
@@ -330,6 +330,8 @@ def test() -> None:
     msg_as_bytes = msg.encode()
 
     path = [
+        (('127.0.0.1', 6969), pub),
+        (('127.0.0.1', 6969), pub),
         (('127.0.0.1', 6969), pub),
         (('127.0.0.1', 6969), pub),
     ]
