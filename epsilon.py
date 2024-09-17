@@ -125,7 +125,7 @@ CMD_SEND_SEP = b':'
 CMD_PUSH = b'1'
 
 # TODO all messages that are meant for us should go to a folder instead of using a callback
-def handle_incoming(buck_sock:Bucket, port:int, private_key:Private_key, on_recv:Callable[[bytes],None]) -> None:
+def handle_incoming_connections(buck_sock:Bucket, port:int, private_key:Private_key, on_recv:Callable[[bytes],None]) -> None:
 
     sock = socket.socket()
 
@@ -142,27 +142,33 @@ def handle_incoming(buck_sock:Bucket, port:int, private_key:Private_key, on_recv
         except OSError:
             # thread owner has closed the socket
             break
-
-        # TODO everything from this point on should be in a new thread
-
-        payload = b''
-
-        while True:
-
-            data = client_sock.recv(4096)
-
-            if not data:
-                break
-            
-            payload += data
         
-        client_sock.close()
-        
-        for_us, actual_data = handle_msg(payload, private_key)
-        if for_us:
-            on_recv(actual_data)
+        connection_time = time.time()
+
+        threading.Thread(target=handle_client, args=(private_key, on_recv, client_sock, connection_time)).start()
 
     sock.close()
+
+    buck_sock.set(None)
+
+def handle_client(private_key:Private_key, on_recv:Callable[[bytes],None], client:Socket, connection_time:float) -> None:
+
+    payload = b''
+
+    while True:
+
+        data = client.recv(4096)
+
+        if not data:
+            break
+        
+        payload += data
+
+    client.close()
+    
+    for_us, actual_data = handle_msg(payload, private_key)
+    if for_us:
+        on_recv(actual_data)
 
 def handle_msg(payload:bytes, private_key:Private_key) -> tuple[bool, bytes]:
 
@@ -315,7 +321,7 @@ def test() -> None:
 
     buck_sock = Bucket(None)
     on_recv = lambda data: print(f'received: {data!r}')
-    thr = threading.Thread(target=handle_incoming, args=(buck_sock, 6969, priv, on_recv))
+    thr = threading.Thread(target=handle_incoming_connections, args=(buck_sock, 6969, priv, on_recv))
     thr.start()
 
     print('waiting')
