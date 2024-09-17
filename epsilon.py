@@ -185,6 +185,64 @@ def handle_msg(payload:bytes, private_key:Private_key) -> tuple[bool, bytes]:
 def test() -> None:
 
     ####
+    #### test shit out
+    ####
+
+    from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+    from cryptography.hazmat.primitives import padding
+    import os
+
+    ASYMETRIC_BLOCKSIZE_BYTES = 16
+
+    def generate_symetric_key() -> tuple[bytes, bytes]:
+        key = os.urandom(32) # 32 bytes, for AES-256
+        iv = os.urandom(ASYMETRIC_BLOCKSIZE_BYTES)
+        return key, iv
+
+    def encrypt_symetric(msg:bytes, key:bytes, iv:bytes) -> bytes:
+        padder = padding.PKCS7(ASYMETRIC_BLOCKSIZE_BYTES * 8).padder()
+        padded = padder.update(message) + padder.finalize()
+
+        cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
+        encryptor = cipher.encryptor()
+        encrypted = encryptor.update(padded) + encryptor.finalize()
+
+        return encrypted
+
+    def decrypt_symetric(msg:bytes, key:bytes, iv:bytes) -> bytes:
+        cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
+        decryptor = cipher.decryptor()
+        decrypted = decryptor.update(msg) + decryptor.finalize()
+
+        unpadder = padding.PKCS7(ASYMETRIC_BLOCKSIZE_BYTES * 8).unpadder()
+        decrypted = unpadder.update(decrypted) + unpadder.finalize()
+
+        return decrypted
+
+    message = b'This is a secret message.'
+
+    key1, iv1 = generate_symetric_key()
+    key2, iv2 = generate_symetric_key()
+
+    encrypted_message1 = encrypt_symetric(message, key1, iv1)
+
+    # Second encryption
+    cipher2 = Cipher(algorithms.AES(key2), modes.CBC(iv2))
+    encryptor2 = cipher2.encryptor()
+    encrypted_message2 = encryptor2.update(encrypted_message1) + encryptor2.finalize()
+
+    print("Double Encrypted Message:", encrypted_message2)
+
+    # Decryption process
+    # Decrypt second encryption
+    decryptor2 = cipher2.decryptor()
+    decrypted_message1 = decryptor2.update(encrypted_message2) + decryptor2.finalize()
+
+    decrypted_message = decrypt_symetric(decrypted_message1, key1, iv1)
+
+    print("Decrypted Message:", decrypted_message)
+
+    ####
     #### enc/dec
     ####
 
