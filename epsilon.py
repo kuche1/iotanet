@@ -235,10 +235,12 @@ def handle_msg(payload:bytes, private_key:Private_key) -> tuple[bool, bytes]:
 def test() -> None:
 
     ####
-    #### test shit out
+    #### sym enc/dec
     ####
 
-    messeeg = b'This is a secret message.'
+    original = b'This is a secret message.'
+
+    messeeg = original
 
     key1, iv1 = generate_symetric_key()
     key2, iv2 = generate_symetric_key()
@@ -259,8 +261,10 @@ def test() -> None:
 
     print("Double Decrypted Message:", messeeg)
 
+    assert messeeg == original
+
     ####
-    #### enc/dec
+    #### asym enc/dec
     ####
 
     msg = 'fxewagv4reytgesrfdgvfy5ey645r'
