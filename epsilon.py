@@ -108,14 +108,13 @@ def decrypt_symetric(msg:bytes, key:bytes, iv:bytes) -> bytes:
     return decrypted
 
 ######
-###### ...
+###### handle incoming messages
 ######
 
 NOT_FOR_YOU = '0'.encode()
 YES_FOR_YOU = '1'.encode()
 
-# perhaps it's best if instead of a callback all the messages
-# get written to a folder on the FS
+# TODO all successfully decoded messages should go to a folder instead of using a callback
 def handle_incoming(buck_sock:Bucket, port:int, private_key:Private_key, on_recv:Callable[[bytes],None]) -> None:
 
     sock = socket.socket()
@@ -125,8 +124,6 @@ def handle_incoming(buck_sock:Bucket, port:int, private_key:Private_key, on_recv
     sock.listen()
 
     buck_sock.set(sock)
-
-    # print('handler listening')
 
     while True:
 
@@ -156,6 +153,44 @@ def handle_incoming(buck_sock:Bucket, port:int, private_key:Private_key, on_recv
             on_recv(actual_data)
 
     sock.close()
+
+def handle_msg(payload:bytes, private_key:Private_key) -> tuple[bool, bytes]:
+
+    # print(f'got {payload!r}')
+
+    payload = decrypt_asymetric(payload, private_key)
+
+    # print(f'decrypted {payload!r}')
+
+    if payload.startswith(NOT_FOR_YOU):
+
+        payload = payload[len(NOT_FOR_YOU):]
+
+        ip_as_bytes, payload = cut_until(payload, ':'.encode())
+        ip = ip_as_bytes.decode()
+
+        port_as_bytes, payload = cut_until(payload, ':'.encode())
+        port = int(port_as_bytes)
+
+        send_directly(payload, (ip, port))
+
+        return False, b''
+
+    elif payload.startswith(YES_FOR_YOU):
+
+        payload = payload[len(YES_FOR_YOU):]
+
+        # print(f'without the prefix {payload!r}')
+
+        return True, payload
+
+    else:
+
+        assert False
+
+######
+###### send
+######
 
 def send_directly(payload:bytes, to:Addr) -> None:
     # TODO we should do the "wait for some time before sending then send all in mixed order" trick
@@ -198,39 +233,9 @@ def send(payload:bytes, path:list[Node]) -> None:
 
     send_directly(payload, (ip, port))
 
-def handle_msg(payload:bytes, private_key:Private_key) -> tuple[bool, bytes]:
-
-    # print(f'got {payload!r}')
-
-    payload = decrypt_asymetric(payload, private_key)
-
-    # print(f'decrypted {payload!r}')
-
-    if payload.startswith(NOT_FOR_YOU):
-
-        payload = payload[len(NOT_FOR_YOU):]
-
-        ip_as_bytes, payload = cut_until(payload, ':'.encode())
-        ip = ip_as_bytes.decode()
-
-        port_as_bytes, payload = cut_until(payload, ':'.encode())
-        port = int(port_as_bytes)
-
-        send_directly(payload, (ip, port))
-
-        return False, b''
-
-    elif payload.startswith(YES_FOR_YOU):
-
-        payload = payload[len(YES_FOR_YOU):]
-
-        # print(f'without the prefix {payload!r}')
-
-        return True, payload
-
-    else:
-
-        assert False
+######
+###### test
+######
 
 def test() -> None:
 
