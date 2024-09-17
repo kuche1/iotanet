@@ -80,15 +80,20 @@ def decrypt_asymetric(msg:bytes, key:Private_key) -> bytes:
 ###### symetric encryption
 ######
 
-ASYMETRIC_BLOCKSIZE_BYTES = 16
+SYMETRIC_BLOCKSIZE_BYTES = 16
+
+SYMETRIC_KEY_SIZE_BYTES = 32
+# 32 bytes, for AES-256
+
+SYMETRIC_KEY_IV_SIZE_BYTES = SYMETRIC_BLOCKSIZE_BYTES
 
 def generate_symetric_key() -> tuple[bytes, bytes]:
-    key = os.urandom(32) # 32 bytes, for AES-256
-    iv = os.urandom(ASYMETRIC_BLOCKSIZE_BYTES)
+    key = os.urandom(SYMETRIC_KEY_SIZE_BYTES)
+    iv = os.urandom(SYMETRIC_BLOCKSIZE_BYTES)
     return key, iv
 
 def encrypt_symetric(msg:bytes, key:bytes, iv:bytes) -> bytes:
-    padder = crypto_padding.PKCS7(ASYMETRIC_BLOCKSIZE_BYTES * 8).padder()
+    padder = crypto_padding.PKCS7(SYMETRIC_BLOCKSIZE_BYTES * 8).padder()
     padded = padder.update(msg) + padder.finalize()
 
     cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
@@ -102,7 +107,7 @@ def decrypt_symetric(msg:bytes, key:bytes, iv:bytes) -> bytes:
     decryptor = cipher.decryptor()
     decrypted = decryptor.update(msg) + decryptor.finalize()
 
-    unpadder = crypto_padding.PKCS7(ASYMETRIC_BLOCKSIZE_BYTES * 8).unpadder()
+    unpadder = crypto_padding.PKCS7(SYMETRIC_BLOCKSIZE_BYTES * 8).unpadder()
     decrypted = unpadder.update(decrypted) + unpadder.finalize()
 
     return decrypted
@@ -111,11 +116,13 @@ def decrypt_symetric(msg:bytes, key:bytes, iv:bytes) -> bytes:
 ###### handle incoming messages
 ######
 
-NOT_FOR_YOU = '0'.encode()
-YES_FOR_YOU = '1'.encode()
-
 # RECEIVE_MSG_MAX_SIZE = 1024 * 1024 * 50 # in bytes
 # # TODO actually implement
+
+CMD_SEND = b'0'
+CMD_SEND_SEP = b';'
+
+CMD_PUSH = b'1'
 
 # TODO all messages that are meant for us should go to a folder instead of using a callback
 def handle_incoming(buck_sock:Bucket, port:int, private_key:Private_key, on_recv:Callable[[bytes],None]) -> None:
@@ -159,82 +166,101 @@ def handle_incoming(buck_sock:Bucket, port:int, private_key:Private_key, on_recv
 
 def handle_msg(payload:bytes, private_key:Private_key) -> tuple[bool, bytes]:
 
-    # print(f'got {payload!r}')
+    print()
+    print(f'received message {payload!r}')
+    print()
 
-    payload = decrypt_asymetric(payload, private_key)
+    if len(payload) < ASYMETRIC_KEY_SIZE_BYTES:
+        print(f'someone is fucking with us')
+        return False, b''
+    
+    req = payload[:ASYMETRIC_KEY_SIZE_BYTES]
+    payload = payload[ASYMETRIC_KEY_SIZE_BYTES:]
 
-    # print(f'decrypted {payload!r}')
+    req = decrypt_asymetric(req, private_key)
+    print(f'got request: {req!r}')
 
-    if payload.startswith(NOT_FOR_YOU):
+    cmd = req[0:1] # this really is req[0] but in a way that makes mypy happy
+    args = req[1:]
 
-        payload = payload[len(NOT_FOR_YOU):]
+    if cmd == CMD_SEND:
 
-        ip_as_bytes, payload = cut_until(payload, ':'.encode())
+        ip_as_bytes, port_as_bytes = args.split(CMD_SEND_SEP)
+
         ip = ip_as_bytes.decode()
 
-        port_as_bytes, payload = cut_until(payload, ':'.encode())
         port = int(port_as_bytes)
 
         send_directly(payload, (ip, port))
 
-        return False, b''
+    elif cmd == CMD_PUSH:
 
-    elif payload.startswith(YES_FOR_YOU):
+        asym_key = args[:SYMETRIC_KEY_SIZE_BYTES]
+        asym_iv = args[SYMETRIC_KEY_SIZE_BYTES:]
 
-        payload = payload[len(YES_FOR_YOU):]
+        assert len(asym_key) == SYMETRIC_KEY_SIZE_BYTES
+        assert len(asym_iv) == SYMETRIC_KEY_IV_SIZE_BYTES
 
-        # print(f'without the prefix {payload!r}')
+        payload = decrypt_symetric(payload, asym_key, asym_iv)
 
         return True, payload
 
     else:
 
-        assert False
+        print(f'got unknown command `{cmd!r}`')
+
+    return False, b''
 
 ######
 ###### send
 ######
 
+def send(payload:bytes, path:list[Node]) -> None:
+
+    assert len(path)
+
+    is_receiver = True
+
+    for [ip, port], public_key in reversed(path):
+
+        if is_receiver:
+
+            is_receiver = False
+
+            sym_key, sym_iv = generate_symetric_key()
+
+            payload = encrypt_symetric(payload, sym_key, sym_iv)
+
+            payload = \
+                encrypt_asymetric(CMD_PUSH + sym_key + sym_iv, public_key) + \
+                payload
+
+        else:
+
+            payload = \
+                encrypt_asymetric(CMD_SEND + ip.encode() + CMD_SEND_SEP + str(port).encode(), public_key) + \
+                payload
+
+    send_directly(payload, (ip, port))
+
 def send_directly(payload:bytes, to:Addr) -> None:
     # TODO we should do the "wait for some time before sending then send all in mixed order" trick
 
-    print(f'request to send something to `{to}`')
+    print()
+    print(f'sending to {to} message {payload!r}')
+    print()
 
     sock = socket.socket()
 
     try:
         sock.connect(to)
     except ConnectionRefusedError:
-        print(f'connection refused to `{to}`')
+        print(f'connection refused to {to}')
         return
 
     sock.sendall(payload)
 
     sock.close()
-
-def send(payload:bytes, path:list[Node]) -> None:
-
-    is_receiver = True
-
-    assert len(path)
-
-    for [ip, port], public_key in reversed(path):
-
-        # print(f'payload to send {payload!r}')
-
-        if is_receiver:
-            is_receiver = False
-            payload = YES_FOR_YOU + payload
-        else:
-            payload = NOT_FOR_YOU + ip.encode() + ':'.encode() + str(port).encode() + ':'.encode() + payload
-
-        # print(f'with prefix {payload!r}')
-
-        payload = encrypt_asymetric(payload, public_key)
-
-        # print(f'encrypted {payload!r}')
-
-    send_directly(payload, (ip, port))
 
 ######
 ###### test
@@ -305,9 +331,12 @@ def test() -> None:
 
     path = [
         (('127.0.0.1', 6969), pub),
+        (('127.0.0.1', 6969), pub),
     ]
 
     send(msg_as_bytes, path)
+
+    time.sleep(5)
 
     buck_sock.get().close() # a bit forced
 
