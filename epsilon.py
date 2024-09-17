@@ -43,13 +43,13 @@ def cut_until(msg:bytes, until:bytes) -> tuple[bytes, bytes]:
 ###### asymetric encryption
 ######
 
-ASYMETRIC_KEY_SIZE = 2048
-# actually this is the size in bits of the encrypted message
+ASYMETRIC_KEY_SIZE_BYTES = 256
+# actually this is also the size in bits of the encrypted message
 
 def generate_asymetric_keys() -> tuple[Private_key,Public_key]:
     private = cryptography.hazmat.primitives.asymmetric.rsa.generate_private_key(
         public_exponent=65537,
-        key_size=ASYMETRIC_KEY_SIZE,
+        key_size=ASYMETRIC_KEY_SIZE_BYTES * 8,
     )
 
     public = private.public_key()
@@ -151,8 +151,8 @@ def handle_incoming(buck_sock:Bucket, port:int, private_key:Private_key, on_recv
         
         client_sock.close()
         
-        succ, actual_data = handle_msg(payload, private_key)
-        if succ:
+        for_us, actual_data = handle_msg(payload, private_key)
+        if for_us:
             on_recv(actual_data)
 
     sock.close()
