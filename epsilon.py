@@ -2,17 +2,15 @@
 import socket
 import argparse
 from typing import Iterator, Callable, Any
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
+from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey, RSAPrivateKey
 import threading
 import time
-
-ASYMETRIC_KEY_SIZE = 2048
-# actually this is the size in bits of the encrypted message
-
-NOT_FOR_YOU = '0'.encode()
-YES_FOR_YOU = '1'.encode()
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives import padding as crypto_padding
+import cryptography
+import os
 
 Private_key = RSAPrivateKey
 Public_key = RSAPublicKey
@@ -22,6 +20,10 @@ Addr = tuple[Ip,Port]
 Node = tuple[Addr,Public_key]
 Socket = socket.socket
 
+######
+###### class
+######
+
 class Bucket:
     def __init__(s, data:Any) -> None:
         s.set(data)
@@ -30,9 +32,20 @@ class Bucket:
     def get(s) -> Any:
         return s.data
 
+######
+###### basic fnc
+######
+
 def cut_until(msg:bytes, until:bytes) -> tuple[bytes, bytes]:
     idx = msg.index(until)
     return msg[:idx], msg[idx+len(until):]
+
+######
+###### asymetric encryption
+######
+
+ASYMETRIC_KEY_SIZE = 2048
+# actually this is the size in bits of the encrypted message
 
 def generate_asymetric_keys() -> tuple[Private_key,Public_key]:
     private = rsa.generate_private_key(
@@ -47,8 +60,8 @@ def generate_asymetric_keys() -> tuple[Private_key,Public_key]:
 def encrypt_asymetric(msg:bytes, key:Public_key) -> bytes:
     return key.encrypt(
         msg,
-        padding.OAEP( # this padding adds (32*2+2) additional bytes to the message (sha256 is 32bits)
-            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+        cryptography.hazmat.primitives.asymmetric.padding.OAEP( # this padding adds (32*2+2) additional bytes to the message (sha256 is 32bits)
+            mgf=cryptography.hazmat.primitives.asymmetric.padding.MGF1(algorithm=hashes.SHA256()),
             algorithm=hashes.SHA256(),
             label=None
         )
@@ -57,12 +70,50 @@ def encrypt_asymetric(msg:bytes, key:Public_key) -> bytes:
 def decrypt_asymetric(msg:bytes, key:Private_key) -> bytes:
     return key.decrypt(
         msg,
-        padding.OAEP(
-            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+        cryptography.hazmat.primitives.asymmetric.padding.OAEP(
+            mgf=cryptography.hazmat.primitives.asymmetric.padding.MGF1(algorithm=hashes.SHA256()),
             algorithm=hashes.SHA256(),
             label=None
         )
     )
+
+######
+###### symetric encryption
+######
+
+ASYMETRIC_BLOCKSIZE_BYTES = 16
+
+def generate_symetric_key() -> tuple[bytes, bytes]:
+    key = os.urandom(32) # 32 bytes, for AES-256
+    iv = os.urandom(ASYMETRIC_BLOCKSIZE_BYTES)
+    return key, iv
+
+def encrypt_symetric(msg:bytes, key:bytes, iv:bytes) -> bytes:
+    padder = crypto_padding.PKCS7(ASYMETRIC_BLOCKSIZE_BYTES * 8).padder()
+    padded = padder.update(msg) + padder.finalize()
+
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
+    encryptor = cipher.encryptor()
+    encrypted = encryptor.update(padded) + encryptor.finalize()
+
+    return encrypted
+
+def decrypt_symetric(msg:bytes, key:bytes, iv:bytes) -> bytes:
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
+    decryptor = cipher.decryptor()
+    decrypted = decryptor.update(msg) + decryptor.finalize()
+
+    unpadder = crypto_padding.PKCS7(ASYMETRIC_BLOCKSIZE_BYTES * 8).unpadder()
+    decrypted = unpadder.update(decrypted) + unpadder.finalize()
+
+    return decrypted
+
+######
+###### ...
+######
+
+NOT_FOR_YOU = '0'.encode()
+YES_FOR_YOU = '1'.encode()
 
 # perhaps it's best if instead of a callback all the messages
 # get written to a folder on the FS
@@ -188,59 +239,26 @@ def test() -> None:
     #### test shit out
     ####
 
-    from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-    from cryptography.hazmat.primitives import padding
-    import os
-
-    ASYMETRIC_BLOCKSIZE_BYTES = 16
-
-    def generate_symetric_key() -> tuple[bytes, bytes]:
-        key = os.urandom(32) # 32 bytes, for AES-256
-        iv = os.urandom(ASYMETRIC_BLOCKSIZE_BYTES)
-        return key, iv
-
-    def encrypt_symetric(msg:bytes, key:bytes, iv:bytes) -> bytes:
-        padder = padding.PKCS7(ASYMETRIC_BLOCKSIZE_BYTES * 8).padder()
-        padded = padder.update(message) + padder.finalize()
-
-        cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
-        encryptor = cipher.encryptor()
-        encrypted = encryptor.update(padded) + encryptor.finalize()
-
-        return encrypted
-
-    def decrypt_symetric(msg:bytes, key:bytes, iv:bytes) -> bytes:
-        cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
-        decryptor = cipher.decryptor()
-        decrypted = decryptor.update(msg) + decryptor.finalize()
-
-        unpadder = padding.PKCS7(ASYMETRIC_BLOCKSIZE_BYTES * 8).unpadder()
-        decrypted = unpadder.update(decrypted) + unpadder.finalize()
-
-        return decrypted
-
-    message = b'This is a secret message.'
+    messeeg = b'This is a secret message.'
 
     key1, iv1 = generate_symetric_key()
     key2, iv2 = generate_symetric_key()
 
-    encrypted_message = encrypt_symetric(message, key1, iv1)
+    messeeg = encrypt_symetric(messeeg, key1, iv1)
 
-    # Second encryption
-    cipher2 = Cipher(algorithms.AES(key2), modes.CBC(iv2))
-    encryptor2 = cipher2.encryptor()
-    encrypted_message = encryptor2.update(encrypted_message) + encryptor2.finalize()
+    print("Single Encrypted Message:", messeeg)
 
-    print("Double Encrypted Message:", encrypted_message)
+    messeeg = encrypt_symetric(messeeg, key2, iv2)
 
-    # Decryption process
-    # Decrypt second encryption
-    decryptor2 = cipher2.decryptor()
-    decrypted_message = decryptor2.update(encrypted_message) + decryptor2.finalize()
+    print("Double Encrypted Message:", messeeg)
 
-    decrypted_message = decrypt_symetric(decrypted_message, key1, iv1)
+    messeeg = decrypt_symetric(messeeg, key2, iv2)
 
-    print("Decrypted Message:", decrypted_message)
+    print("Single Decrypted Message:", messeeg)
+
+    messeeg = decrypt_symetric(messeeg, key1, iv1)
+
+    print("Double Decrypted Message:", messeeg)
 
     ####
     #### enc/dec
