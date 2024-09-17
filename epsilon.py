@@ -224,19 +224,19 @@ def test() -> None:
     key1, iv1 = generate_symetric_key()
     key2, iv2 = generate_symetric_key()
 
-    encrypted_message1 = encrypt_symetric(message, key1, iv1)
+    encrypted_message = encrypt_symetric(message, key1, iv1)
 
     # Second encryption
     cipher2 = Cipher(algorithms.AES(key2), modes.CBC(iv2))
     encryptor2 = cipher2.encryptor()
-    encrypted_message2 = encryptor2.update(encrypted_message1) + encryptor2.finalize()
+    encrypted_message = encryptor2.update(encrypted_message) + encryptor2.finalize()
 
-    print("Double Encrypted Message:", encrypted_message2)
+    print("Double Encrypted Message:", encrypted_message)
 
     # Decryption process
     # Decrypt second encryption
     decryptor2 = cipher2.decryptor()
-    decrypted_message1 = decryptor2.update(encrypted_message2) + decryptor2.finalize()
+    decrypted_message1 = decryptor2.update(encrypted_message) + decryptor2.finalize()
 
     decrypted_message = decrypt_symetric(decrypted_message1, key1, iv1)
 
