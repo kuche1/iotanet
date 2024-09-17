@@ -116,8 +116,7 @@ def decrypt_symetric(msg:bytes, key:bytes, iv:bytes) -> bytes:
 ###### handle incoming messages
 ######
 
-# RECEIVE_MSG_MAX_SIZE = 1024 * 1024 * 50 # in bytes
-# # TODO actually implement
+RECEIVE_MSG_MAX_SIZE = 1024 * 1024 * 50 # in bytes
 
 CMD_SEND = b'0'
 CMD_SEND_SEP = b':'
@@ -163,6 +162,11 @@ def handle_client(private_key:Private_key, on_recv:Callable[[bytes],None], clien
             break
         
         payload += data
+
+        if len(payload) > RECEIVE_MSG_MAX_SIZE:
+            print(f'message too big')
+            client.close()
+            return
 
     client.close()
     
