@@ -31,10 +31,10 @@ def cut_until(msg:bytes, until:bytes) -> tuple[bytes, bytes]:
     idx = msg.index(until)
     return msg[:idx], msg[idx+len(until):]
 
-def generate_keys() -> tuple[Private_key,Public_key]:
+def generate_keys(key_size:int=2048) -> tuple[Private_key,Public_key]:
     private = rsa.generate_private_key(
         public_exponent=65537,
-        key_size=2048,
+        key_size=key_size, # actually this is the size in bits of the encrypted message
     )
 
     public = private.public_key()
@@ -182,13 +182,29 @@ def handle_msg(payload:bytes, private_key:Private_key) -> tuple[bool, bytes]:
 def test() -> None:
 
     ####
+    #### just testing something out
+    ####
+
+    msg = '1234567890'
+    msg_as_bytes = msg.encode()
+    priv, pub = generate_keys(256*8)
+    msg_as_bytes = encrypt(msg_as_bytes, pub)
+    print(f'original={len(msg)} encrypted={len(msg_as_bytes)}')
+    priv, pub = generate_keys((256+32*2+2)*8)
+    msg_as_bytes = encrypt(msg_as_bytes, pub)
+    print(f'original={len(msg)} encrypted={len(msg_as_bytes)}')
+
+    ####
     #### enc/dec
     ####
 
     msg = 'fxewagv4reytgesrfdgvfy5ey645r'
     msg_as_bytes = msg.encode()
     priv, pub = generate_keys()
-    assert decrypt(encrypt(msg_as_bytes, pub), priv).decode() == msg
+    msg_as_bytes = encrypt(msg_as_bytes, pub)
+    priv2, pub2 = generate_keys()
+    msg_as_bytes = encrypt(msg_as_bytes, pub2)
+    assert decrypt(msg_as_bytes, priv).decode() == msg
 
     ####
     #### send/recv self
