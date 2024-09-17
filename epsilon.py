@@ -8,6 +8,9 @@ from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey, RSAPriva
 import threading
 import time
 
+ASYMETRIC_KEY_SIZE = 2048
+# actually this is the size in bits of the encrypted message
+
 NOT_FOR_YOU = '0'.encode()
 YES_FOR_YOU = '1'.encode()
 
@@ -31,27 +34,27 @@ def cut_until(msg:bytes, until:bytes) -> tuple[bytes, bytes]:
     idx = msg.index(until)
     return msg[:idx], msg[idx+len(until):]
 
-def generate_keys(key_size:int=2048) -> tuple[Private_key,Public_key]:
+def generate_asymetric_keys() -> tuple[Private_key,Public_key]:
     private = rsa.generate_private_key(
         public_exponent=65537,
-        key_size=key_size, # actually this is the size in bits of the encrypted message
+        key_size=ASYMETRIC_KEY_SIZE,
     )
 
     public = private.public_key()
 
     return private, public
 
-def encrypt(msg:bytes, key:Public_key) -> bytes:
+def encrypt_asymetric(msg:bytes, key:Public_key) -> bytes:
     return key.encrypt(
         msg,
-        padding.OAEP(
+        padding.OAEP( # this padding adds (32*2+2) additional bytes to the message (sha256 is 32bits)
             mgf=padding.MGF1(algorithm=hashes.SHA256()),
             algorithm=hashes.SHA256(),
             label=None
         )
     )
 
-def decrypt(msg:bytes, key:Private_key) -> bytes:
+def decrypt_asymetric(msg:bytes, key:Private_key) -> bytes:
     return key.decrypt(
         msg,
         padding.OAEP(
@@ -139,7 +142,7 @@ def send(payload:bytes, path:list[Node]) -> None:
 
         # print(f'with prefix {payload!r}')
 
-        payload = encrypt(payload, public_key)
+        payload = encrypt_asymetric(payload, public_key)
 
         # print(f'encrypted {payload!r}')
 
@@ -149,7 +152,7 @@ def handle_msg(payload:bytes, private_key:Private_key) -> tuple[bool, bytes]:
 
     # print(f'got {payload!r}')
 
-    payload = decrypt(payload, private_key)
+    payload = decrypt_asymetric(payload, private_key)
 
     # print(f'decrypted {payload!r}')
 
@@ -182,35 +185,20 @@ def handle_msg(payload:bytes, private_key:Private_key) -> tuple[bool, bytes]:
 def test() -> None:
 
     ####
-    #### just testing something out
-    ####
-
-    msg = '1234567890'
-    msg_as_bytes = msg.encode()
-    priv, pub = generate_keys(256*8)
-    msg_as_bytes = encrypt(msg_as_bytes, pub)
-    print(f'original={len(msg)} encrypted={len(msg_as_bytes)}')
-    priv, pub = generate_keys((256+32*2+2)*8)
-    msg_as_bytes = encrypt(msg_as_bytes, pub)
-    print(f'original={len(msg)} encrypted={len(msg_as_bytes)}')
-
-    ####
     #### enc/dec
     ####
 
     msg = 'fxewagv4reytgesrfdgvfy5ey645r'
     msg_as_bytes = msg.encode()
-    priv, pub = generate_keys()
-    msg_as_bytes = encrypt(msg_as_bytes, pub)
-    priv2, pub2 = generate_keys()
-    msg_as_bytes = encrypt(msg_as_bytes, pub2)
-    assert decrypt(msg_as_bytes, priv).decode() == msg
+    priv, pub = generate_asymetric_keys()
+    msg_as_bytes = encrypt_asymetric(msg_as_bytes, pub)
+    assert decrypt_asymetric(msg_as_bytes, priv).decode() == msg
 
     ####
     #### send/recv self
     ####
 
-    priv, pub = generate_keys()
+    priv, pub = generate_asymetric_keys()
 
     buck_sock = Bucket(None)
     on_recv = lambda data: print(f'received: {data!r}')
