@@ -236,9 +236,9 @@ def test() -> None:
     # Decryption process
     # Decrypt second encryption
     decryptor2 = cipher2.decryptor()
-    decrypted_message1 = decryptor2.update(encrypted_message) + decryptor2.finalize()
+    decrypted_message = decryptor2.update(encrypted_message) + decryptor2.finalize()
 
-    decrypted_message = decrypt_symetric(decrypted_message1, key1, iv1)
+    decrypted_message = decrypt_symetric(decrypted_message, key1, iv1)
 
     print("Decrypted Message:", decrypted_message)
 
