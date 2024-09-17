@@ -108,7 +108,7 @@ def decrypt_symetric(msg:bytes, key:bytes, iv:bytes) -> bytes:
     return decrypted
 
 ######
-###### handle incoming messages
+###### handle incoming
 ######
 
 NOT_FOR_YOU = '0'.encode()
