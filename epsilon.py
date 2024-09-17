@@ -2,7 +2,6 @@
 import socket
 import argparse
 from typing import Iterator, Callable, Any
-from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey, RSAPrivateKey
 import threading
@@ -48,7 +47,7 @@ ASYMETRIC_KEY_SIZE = 2048
 # actually this is the size in bits of the encrypted message
 
 def generate_asymetric_keys() -> tuple[Private_key,Public_key]:
-    private = rsa.generate_private_key(
+    private = cryptography.hazmat.primitives.asymmetric.rsa.generate_private_key(
         public_exponent=65537,
         key_size=ASYMETRIC_KEY_SIZE,
     )
