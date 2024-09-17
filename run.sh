@@ -2,6 +2,6 @@
 
 {
     set -euo pipefail
-    mypy --strict epsilon.py
-    python3 epsilon.py $@
+    mypy --strict zeta.py
+    python3 zeta.py $@
 }
