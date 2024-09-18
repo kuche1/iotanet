@@ -145,10 +145,7 @@ def decrypt_symetric(msg:bytes, key_iv:Symetric_key) -> bytes:
 RECEIVE_MSG_MAX_SIZE = 1024 * 1024 * 50 # in bytes
 
 CMD_SEND = b'0'
-CMD_SEND_SEP = b':'
-
 CMD_PUSH = b'1'
-
 CMD_GET_PUB_KEY = b'2'
 
 def handle_incoming_connections(port:int, private_key:Private_key) -> None:
@@ -214,13 +211,10 @@ def handle_msg(payload:bytes, private_key:Private_key, connection_time:float) ->
 
     if cmd == CMD_SEND:
 
-        ip_as_bytes, port_as_bytes = args.split(CMD_SEND_SEP) # TODO use the util function for searialising addr
+        addr, args = util.chop_addr(args)
+        assert len(args) == 0
 
-        ip = ip_as_bytes.decode()
-
-        port = int(port_as_bytes)
-
-        create_send_entry((ip, port), payload)
+        create_send_entry(addr, payload)
 
     elif cmd == CMD_PUSH:
 
@@ -272,9 +266,14 @@ def generate_send_1way_header(path:list[Node]) -> tuple[Addr, bytes, Symetric_ke
 
         else:
 
-            (ip_next, port_next), public_key_next = path[0]
+            addr_next, public_key_next = path[0]
 
-            data += encrypt_asymetric(CMD_SEND + ip_next.encode() + CMD_SEND_SEP + str(port_next).encode(), public_key_next)
+            data += \
+                encrypt_asymetric(
+                    CMD_SEND + util.addr_to_bytes(addr_next)
+                    ,
+                    public_key_next
+                )
 
 def generate_send_1way_payload(payload:bytes, path:list[Node]) -> tuple[Addr, bytes]:
 

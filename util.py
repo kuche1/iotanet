@@ -118,6 +118,7 @@ def chop_addr(data:bytes) -> tuple[Addr, bytes]:
     data = data[idx + len(sep):]
 
     port = int(port_bytes.decode())
+    assert port > 0
 
     return (ip, port), data
 
