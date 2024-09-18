@@ -74,18 +74,18 @@ def main() -> None:
 
         time.sleep(ITER_SLEEP_SEC)
 
-        request_folders:list[str] = []
         for _path, request_folders, _files in os.walk(FOLDER_REQUESTS):
+
+            for request_folder in request_folders:
+
+                path = f'{FOLDER_REQUESTS}/{request_folder}'
+
+                try_finally(
+                    lambda: handle_folder(path),
+                    lambda: shutil.rmtree(path),
+                )
+
             break
-        
-        for request_folder in request_folders:
-
-            path = f'{FOLDER_REQUESTS}/{request_folder}'
-
-            try_finally(
-                lambda: handle_folder(path),
-                lambda: shutil.rmtree(path),
-            )
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('daemon: request handler')
