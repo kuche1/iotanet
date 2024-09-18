@@ -24,4 +24,4 @@ path_way_back = [
     (('127.0.0.1', 6969), pub),
 ]
 
-q_sym_key = send_circular(q, q_id, path_to_dest, path_way_back)
+send_circular(q, q_id, path_to_dest, path_way_back)

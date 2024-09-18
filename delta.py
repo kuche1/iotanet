@@ -51,13 +51,13 @@ def handle_folder(path:str) -> None:
 
     elif query_type == QUERY_TYPE_GIVE_ME_THE_PEERS_YOU_KNOW:
 
-        raise NotImplemented
+        assert False, 'not implemented yet'
 
     else:
 
         assert False, f'unknown query type {query_type!r}'
 
-    resp = resp_header + resp # TODO we could easily include `query_type` here, but is it a good idea? if we really need to we could put that n the `query_id`
+    resp = resp_header + resp
     resp = encrypt_symetric(resp, sym_key, sym_iv)
     resp = return_path + resp
 

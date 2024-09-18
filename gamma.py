@@ -39,7 +39,7 @@ def chop_until_next_sep(payload:bytes) -> tuple[str, bytes, bytes]:
 
     return '', data, payload
 
-def send_circular(query:bytes, query_id:bytes, path_to_dest:list[Node], path_way_back:list[Node]) -> Symetric_key:
+def send_circular(query:bytes, query_id:bytes, path_to_dest:list[Node], path_way_back:list[Node]) -> None:
 
     (ip_back, port_back), header_back, response_sym_key, response_sym_iv = generate_send_1way_header(path_way_back)
 
@@ -60,8 +60,6 @@ def send_circular(query:bytes, query_id:bytes, path_to_dest:list[Node], path_way
         header_back
 
     send_1way(payload, path_to_dest)
-
-    return response_sym_key, response_sym_iv # TODO just embed this into the ID
 
 def handle_file(path:str, message_file:str) -> None:
 
