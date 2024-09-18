@@ -10,7 +10,7 @@ import util
 
 from alpha import ITER_SLEEP_SEC, create_send_entry
 from beta import encrypt_symetric
-from gamma import FOLDER_REQUESTS, TYPE_RESPONSE, SEP
+from gamma import FOLDER_REQUESTS, MESSAGE_TYPE_RESPONSE, SEP
 
 def handle_folder(path:str) -> None:
 
@@ -27,7 +27,7 @@ def handle_folder(path:str) -> None:
     resp = b'yes, I got your request: ' + query
     print(f'{resp=}')
 
-    resp = TYPE_RESPONSE + str(len(query_id)).encode() + SEP + query_id + resp
+    resp = MESSAGE_TYPE_RESPONSE + str(len(query_id)).encode() + SEP + query_id + resp
     print(f'{resp=}')
 
     resp = encrypt_symetric(resp, sym_key, sym_iv)

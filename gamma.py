@@ -19,8 +19,8 @@ FOLDER_REQUESTS_TMP = f'{FOLDER_REQUESTS}_tmp'
 FOLDER_RESPONSES = f'{HERE}/_responses'
 FOLDER_RESPONSES_TMP = f'{FOLDER_RESPONSES}_tmp'
 
-TYPE_REQUEST = b'0'
-TYPE_RESPONSE = b'1'
+MESSAGE_TYPE_REQUEST = b'0'
+MESSAGE_TYPE_RESPONSE = b'1'
 
 SEP = b':'
 
@@ -45,7 +45,7 @@ def send_circular(query:bytes, query_id:bytes, path_to_dest:list[Node], path_way
     query_identificator = encrypt_symetric(query_id, identificator_sym_key, identificator_sym_iv)
 
     payload = \
-        TYPE_REQUEST + \
+        MESSAGE_TYPE_REQUEST + \
         str(len(query)).encode() + SEP + \
         query + \
         response_sym_key + \
@@ -69,7 +69,7 @@ def handle_file(path:str, message_file:str) -> None:
     type_ = data[0:1]
     payload = data[1:]
 
-    if type_ == TYPE_REQUEST:
+    if type_ == MESSAGE_TYPE_REQUEST:
 
         print()
         print(f'got request: {payload!r}')
@@ -160,7 +160,7 @@ def handle_file(path:str, message_file:str) -> None:
         
         shutil.move(root_tmp, root_saved)
 
-    elif type_ == TYPE_RESPONSE:
+    elif type_ == MESSAGE_TYPE_RESPONSE:
 
         print()
         print(f'got response: {payload!r}')
