@@ -249,11 +249,11 @@ def generate_send_1way_header(path:list[Node]) -> tuple[Addr, bytes, Symetric_ke
 
     while True:
 
-        (ip_cur, port_cur), public_key_cur = path[0]
+        addr_cur, public_key_cur = path[0]
         path = path[1:]
 
         if target_addr == None:
-            target_addr = (ip_cur, port_cur)
+            target_addr = addr_cur
 
         if len(path) <= 0:
 
