@@ -1,59 +1,44 @@
 #! /usr/bin/env python3
 
-# WIP
-# idk if this is even relevant anymore
+# TODO
+#
+# this can crash
+#
+# same as the others, do the threading thing
 
+import argparse
+import time
 import os
+import shutil
 
-from beta import FOLDER_RECEIVED_UNPROCESSED
+from alpha import ITER_SLEEP_SEC
+from gamma import FOLDER_RESPONSES
+from delta import read_file_bytes
 
-HERE = os.path.dirname(os.path.realpath(__file__))
-
-FOLDER_RECEIVED = f'{HERE}/_received'
-FOLDER_RECEIVED_TMP = f'{FOLDER_RECEIVED}_tmp'
-
-CMD_PUSH = b'0'
-
-CMD_GET_PUB_KEY = b'1'
-
-def main():
-
-    os.makedirs(FOLDER_RECEIVED, exist_ok=True)
+def main() -> None:
 
     while True:
 
-        message_files = []
-        for _path, _folders, message_files in os.walk(FOLDER_RECEIVED_UNPROCESSED):
+        time.sleep(ITER_SLEEP_SEC)
+
+        response_folders:list[str] = []
+        for _path, response_folders, _files in os.walk(FOLDER_RESPONSES):
             break
         
-        for file in message_files:
+        for response_folder in response_folders:
 
-            path_source = f'{FOLDER_RECEIVED_UNPROCESSED}/{file}'
-            path_tmp = f'{FOLDER_RECEIVED_TMP}/file'
-            path_dest = f'{FOLDER_RECEIVED}/{file}'
+            path = f'{FOLDER_RESPONSES}/{response_folder}'
 
-            with open(path_source, 'rb') as f:
-                message = f.read()
-            
-            if len(message) <= 0:
-                print('bad message')
-                os.remove(path_source)
-                continue
-            
-            cmd = message[0:1]
-            args = message[1:]
+            query_id = read_file_bytes(f'{path}/id')
+            response = read_file_bytes(f'{path}/response')
 
-            if cmd == CMD_PUSH:
+            print()
+            print(f'{query_id=}')
+            print(f'{response=}')
 
-                with open(path_tmp, 'wb') as f:
-                    f.write(args)
-                
-                os.remove(cmd)
+            shutil.rmtree(path)
 
-                shutil.move(path_tmp, path_dest)
-
-            else:
-
-                print(f'unknown command: {cmd!r}')
-
-main()
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser('daemon: response evaluator')
+    args = parser.parse_args()
+    main()

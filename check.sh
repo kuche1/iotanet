@@ -11,4 +11,5 @@
     $MYPY gamma.py
     $MYPY gamma_test.py
     $MYPY delta.py
+    $MYPY epsilon.py
 }

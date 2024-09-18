@@ -17,6 +17,9 @@ HERE = os.path.dirname(os.path.realpath(__file__))
 FOLDER_REQUESTS = f'{HERE}/_requests'
 FOLDER_REQUESTS_TMP = f'{FOLDER_REQUESTS}_tmp'
 
+FOLDER_RESPONSES = f'{HERE}/_responses'
+FOLDER_RESPONSES_TMP = f'{FOLDER_RESPONSES}_tmp'
+
 TYPE_REQUEST = b'0'
 TYPE_RESPONSE = b'1'
 
@@ -62,6 +65,9 @@ def process_messages() -> None:
 
     os.makedirs(FOLDER_REQUESTS, exist_ok=True)
     os.makedirs(FOLDER_REQUESTS_TMP, exist_ok=True)
+
+    os.makedirs(FOLDER_RESPONSES, exist_ok=True)
+    os.makedirs(FOLDER_RESPONSES_TMP, exist_ok=True)
 
     while True:
 
@@ -187,7 +193,7 @@ def process_messages() -> None:
                 print()
 
                 root_tmp = f'{FOLDER_REQUESTS_TMP}/{message_file}'
-                toor_saved = f'{FOLDER_REQUESTS}/{message_file}'
+                root_saved = f'{FOLDER_REQUESTS}/{message_file}'
 
                 os.mkdir(root_tmp)
 
@@ -212,7 +218,7 @@ def process_messages() -> None:
                 with open(f'{root_tmp}/return_path', 'wb') as f:
                     f.write(return_path)
                 
-                shutil.move(root_tmp, toor_saved)
+                shutil.move(root_tmp, root_saved)
 
             elif type_ == TYPE_RESPONSE:
 
@@ -246,6 +252,19 @@ def process_messages() -> None:
                 print(f'{query_id_len=}')
                 print(f'{query_id=}')
                 print(f'{query_response=}')
+
+                root_tmp = f'{FOLDER_RESPONSES_TMP}/{message_file}'
+                root_saved = f'{FOLDER_RESPONSES}/{message_file}'
+
+                os.mkdir(root_tmp)
+
+                with open(f'{root_tmp}/id', 'wb') as f:
+                    f.write(query_id)
+
+                with open(f'{root_tmp}/response', 'wb') as f:
+                    f.write(query_response)
+                
+                shutil.move(root_tmp, root_saved)
 
             else:
 
