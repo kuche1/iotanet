@@ -90,13 +90,7 @@ def handle_file(path:str, message_file:str) -> None:
         query = payload[:query_len]
         payload = payload[query_len:]
 
-        sym_key = payload[:SYMETRIC_KEY_SIZE_BYTES]
-        payload = payload[SYMETRIC_KEY_SIZE_BYTES:]
-        assert len(sym_key) == SYMETRIC_KEY_SIZE_BYTES
-
-        sym_iv = payload[:SYMETRIC_KEY_IV_SIZE_BYTES]
-        payload = payload[SYMETRIC_KEY_IV_SIZE_BYTES:]
-        assert len(sym_iv) == SYMETRIC_KEY_IV_SIZE_BYTES
+        sym_key, payload = util.chop_symetric_key(payload)
 
         err, ip_bytes, payload = chop_until_next_sep(payload)
         assert not err
@@ -127,7 +121,6 @@ def handle_file(path:str, message_file:str) -> None:
         # print(f'{query_len=}')
         # print(f'{query=}')
         # print(f'{sym_key=}')
-        # print(f'{sym_iv=}')
         # print(f'{ip=}')
         # print(f'{port=}')
         # print(f'{query_id_len=}')
@@ -143,11 +136,7 @@ def handle_file(path:str, message_file:str) -> None:
         with open(f'{root_tmp}/query', 'wb') as f:
             f.write(query)
 
-        with open(f'{root_tmp}/sym_key', 'wb') as f:
-            f.write(sym_key)
-
-        with open(f'{root_tmp}/sym_iv', 'wb') as f:
-            f.write(sym_iv)
+        util.file_write_symetric_key(f'{root_tmp}/sym_key', sym_key)
 
         with open(f'{root_tmp}/ip', 'w') as f:
             f.write(ip)

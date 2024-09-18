@@ -48,7 +48,27 @@ def try_finally(fnc:Callable[[],None], cleanup:Callable[[],None]) -> None:
         cleanup()
 
 ######
-###### keys: file IO / str operation
+###### keys: str operation
+######
+
+def symetric_key_to_bytes(key:Symetric_key) -> bytes:
+    k, i = key
+    return k + i
+
+def chop_symetric_key(data:bytes) -> tuple[Symetric_key, bytes]:
+
+    sym_key = data[:SYMETRIC_KEY_SIZE_BYTES]
+    data = data[SYMETRIC_KEY_SIZE_BYTES:]
+    assert len(sym_key) == SYMETRIC_KEY_SIZE_BYTES
+
+    sym_iv = data[:SYMETRIC_KEY_IV_SIZE_BYTES]
+    data = data[SYMETRIC_KEY_IV_SIZE_BYTES:]
+    assert len(sym_iv) == SYMETRIC_KEY_IV_SIZE_BYTES
+
+    return (sym_key, sym_iv), data
+
+######
+###### keys: file IO
 ######
 
 def file_read_symetric_key(file:str) -> Symetric_key:
@@ -67,14 +87,6 @@ def file_read_symetric_key(file:str) -> Symetric_key:
 
     return ident_key, ident_iv
 
-def file_write_symetric_key(file:str, key_iv:Symetric_key) -> None:
-
-    key, iv = key_iv
-
+def file_write_symetric_key(file:str, key:Symetric_key) -> None:
     with open(file, 'wb') as f:
-        f.write(key)
-        f.write(iv)
-
-def symetric_key_to_bytes(key:Symetric_key) -> bytes:
-    k, i = key
-    return k + i
+        f.write(symetric_key_to_bytes(key))

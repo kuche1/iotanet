@@ -23,8 +23,7 @@ QUERY_TYPE_GIVE_ME_THE_PEERS_YOU_KNOW = b'2'
 def handle_folder(path:str) -> None:
 
     query = util.file_read_bytes(f'{path}/query')
-    sym_key = util.file_read_bytes(f'{path}/sym_key')
-    sym_iv = util.file_read_bytes(f'{path}/sym_iv')
+    sym_key = util.file_read_symetric_key(f'{path}/sym_key')
     ip = util.file_read_str(f'{path}/ip')
     port = util.file_read_int_positive_or_0(f'{path}/port')
     query_id = util.file_read_bytes(f'{path}/id')
@@ -58,7 +57,7 @@ def handle_folder(path:str) -> None:
         assert False, f'unknown query type {query_type!r}'
 
     resp = resp_header + resp
-    resp = encrypt_symetric(resp, (sym_key, sym_iv))
+    resp = encrypt_symetric(resp, sym_key)
     resp = return_path + resp
 
     create_send_entry(ip, port, resp)
