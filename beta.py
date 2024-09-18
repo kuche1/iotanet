@@ -21,6 +21,8 @@ HERE = os.path.dirname(os.path.realpath(__file__))
 FOLDER_RECEIVED_UNPROCESSED = f'{HERE}/_received_unprocessed'
 FOLDER_RECEIVED_UNPROCESSED_TMP = f'{FOLDER_RECEIVED_UNPROCESSED}_tmp'
 
+FILE_PUBLIC_KEY = f'{HERE}/_public_key'
+
 Private_key = RSAPrivateKey
 Public_key = RSAPublicKey
 Symetric_key = tuple[bytes, bytes]
@@ -318,10 +320,18 @@ if __name__ == '__main__':
     priv_as_bytes = private_key_to_bytes(priv)
     pub_as_bytes = public_key_to_bytes(pub)
 
+    with open(FILE_PUBLIC_KEY, 'wb') as f:
+        f.write(pub_as_bytes)
+
     print()
-    print(f'generated private key:\n{priv_as_bytes!r}')
+    print('generated private key:')
+    print(priv_as_bytes)
     print()
-    print(f'generated public key:\n{pub_as_bytes!r}')
+    print('generated public key:')
+    print(pub_as_bytes)
+    print()
+    print('public key written to file:')
+    print(FILE_PUBLIC_KEY)
     print()
 
     main(args.port, priv)

@@ -9,12 +9,11 @@ from typing import Callable
 import util
 
 from alpha import ITER_SLEEP_SEC, create_send_entry
-from beta import encrypt_symetric
+from beta import encrypt_symetric, FILE_PUBLIC_KEY
 from gamma import FOLDER_REQUESTS, MESSAGE_TYPE_RESPONSE, SEP
 
-# TODO use these
 QUERY_TYPE_GIVE_ME_YOUR_PUBLIC_KEY = b'0'
-QUERY_TYPE_PING = b'1'
+QUERY_TYPE_PING = b'1' # TODO remove this later
 
 def handle_folder(path:str) -> None:
 
@@ -35,7 +34,8 @@ def handle_folder(path:str) -> None:
 
     if query_type == QUERY_TYPE_GIVE_ME_YOUR_PUBLIC_KEY:
 
-        raise NotImplemented
+        assert len(query) == 0
+        resp = util.file_read_bytes(FILE_PUBLIC_KEY)
     
     elif query_type == QUERY_TYPE_PING:
 
@@ -48,7 +48,7 @@ def handle_folder(path:str) -> None:
 
         assert False, f'unknown query type {query_type!r}'
 
-    resp = resp_header + resp
+    resp = resp_header + resp # TODO we could easily include `query_type` here, but is it a good idea? if we really need to we could put that n the `query_id`
     resp = encrypt_symetric(resp, sym_key, sym_iv)
     resp = return_path + resp
 
