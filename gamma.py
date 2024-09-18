@@ -45,7 +45,7 @@ def chop_until_next_sep(payload:bytes) -> tuple[str, bytes, bytes]:
 
 def send_circular(query:bytes, private_data:bytes, path_to_dest:list[Node], path_way_back:list[Node]) -> None:
 
-    (ip_back, port_back), header_back, response_sym_key = generate_send_1way_header(path_way_back)
+    addr_back, header_back, response_sym_key = generate_send_1way_header(path_way_back)
 
     identificator_sym_key, identificator_sym_iv = util.file_read_symetric_key(FILE_IDENTIFICATOR_KEY)
 
@@ -56,8 +56,7 @@ def send_circular(query:bytes, private_data:bytes, path_to_dest:list[Node], path
         str(len(query)).encode() + SEP + \
         query + \
         util.symetric_key_to_bytes(response_sym_key) + \
-        ip_back.encode() + SEP + \
-        str(port_back).encode() + SEP + \
+        util.addr_to_bytes(addr_back) + \
         str(len(query_identificator)).encode() + SEP + \
         query_identificator + \
         header_back
@@ -93,16 +92,7 @@ def handle_file(path:str, message_file:str) -> None:
 
         sym_key, payload = util.chop_symetric_key(payload)
 
-        err, ip_bytes, payload = chop_until_next_sep(payload)
-        assert not err
-
-        ip = ip_bytes.decode() # TODO use the util serialisation fnc
-
-        err, port_bytes, payload = chop_until_next_sep(payload)
-        assert not err
-
-        port = int(port_bytes)
-        assert port > 0
+        addr, payload = util.chop_addr(payload)
 
         err, query_id_len_bytes, payload = chop_until_next_sep(payload)
         assert not err
@@ -138,7 +128,7 @@ def handle_file(path:str, message_file:str) -> None:
 
         util.file_write_symetric_key(f'{root_tmp}/sym_key', sym_key)
 
-        util.file_write_addr(f'{root_tmp}/{FILENAME_ADDR}', (ip, port))
+        util.file_write_addr(f'{root_tmp}/{FILENAME_ADDR}', addr)
 
         with open(f'{root_tmp}/id', 'wb') as f:
             f.write(query_id)
