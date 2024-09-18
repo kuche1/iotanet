@@ -18,8 +18,8 @@ from alpha import create_send_entry
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 
-FOLDER_RECEIVED = f'{HERE}/_received'
-FOLDER_RECEIVED_TMP = f'{FOLDER_RECEIVED}_tmp'
+FOLDER_RECEIVED_UNPROCESSED = f'{HERE}/_received_unprocessed'
+FOLDER_RECEIVED_UNPROCESSED_TMP = f'{FOLDER_RECEIVED_UNPROCESSED}_tmp'
 
 Private_key = RSAPrivateKey
 Public_key = RSAPublicKey
@@ -149,6 +149,8 @@ CMD_SEND_SEP = b':'
 
 CMD_PUSH = b'1'
 
+CMD_GET_PUB_KEY = b'2'
+
 def handle_incoming_connections(port:int, private_key:Private_key) -> None:
 
     sock = socket.socket()
@@ -230,8 +232,8 @@ def handle_msg(payload:bytes, private_key:Private_key, connection_time:float) ->
 
         payload = decrypt_symetric(payload, asym_key, asym_iv)
 
-        data_tmp = f'{FOLDER_RECEIVED_TMP}/{connection_time}'
-        data_saved = f'{FOLDER_RECEIVED}/{connection_time}'
+        data_tmp = f'{FOLDER_RECEIVED_UNPROCESSED_TMP}/{connection_time}'
+        data_saved = f'{FOLDER_RECEIVED_UNPROCESSED}/{connection_time}'
 
         with open(data_tmp, 'wb') as f: # this cannot fail since the incoming connection handler is single-threaded
             f.write(payload)
@@ -246,7 +248,7 @@ def handle_msg(payload:bytes, private_key:Private_key, connection_time:float) ->
 ###### send
 ######
 
-def send_1way(payload:bytes, path:list[Node]) -> None:
+def generate_send_1way_payload(payload:bytes, path:list[Node]) -> tuple[Ip, Port, bytes]:
 
     assert len(path)
 
@@ -271,6 +273,12 @@ def send_1way(payload:bytes, path:list[Node]) -> None:
             payload = \
                 encrypt_asymetric(CMD_SEND + ip.encode() + CMD_SEND_SEP + str(port).encode(), public_key) + \
                 payload
+    
+    return ip, port, payload
+
+def send_1way(payload:bytes, path:list[Node]) -> None:
+
+    ip, port, payload = generate_send_1way_payload(payload, path)
 
     create_send_entry(ip, port, payload)
 
@@ -280,8 +288,8 @@ def send_1way(payload:bytes, path:list[Node]) -> None:
 
 def main(port:int, private_key:Private_key) -> None:
 
-    os.makedirs(FOLDER_RECEIVED, exist_ok=True)
-    os.makedirs(FOLDER_RECEIVED_TMP, exist_ok=True)
+    os.makedirs(FOLDER_RECEIVED_UNPROCESSED, exist_ok=True)
+    os.makedirs(FOLDER_RECEIVED_UNPROCESSED_TMP, exist_ok=True)
 
     handle_incoming_connections(port, private_key)
 
