@@ -50,6 +50,7 @@ def handle_folder(path:str) -> None:
 
     elif query_type == QUERY_TYPE_GIVE_ME_THE_PEERS_YOU_KNOW:
 
+        assert len(query) == 0
         assert False, 'not implemented yet'
 
     else:
@@ -84,6 +85,6 @@ def main() -> None:
             break
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser('daemon: request handler')
+    parser = argparse.ArgumentParser('daemon: query handler')
     args = parser.parse_args()
     main()

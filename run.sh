@@ -16,26 +16,23 @@
     trap 'kill -- -$$' EXIT
     # kill all children on exit
 
-    $MYPY util.py
+    $MYPY \
+        util.py \
+        alpha.py \
+        beta.py \
+        beta_test.py \
+        gamma.py \
+        gamma_test.py \
+        delta.py \
+        delta_test.py \
+        epsilon.py \
+        epsilon_test.py
 
-    $MYPY alpha.py
     ./alpha.py &
-
-    $MYPY beta.py
-    $MYPY beta_test.py
     ./beta.py $port &
-
-    $MYPY gamma.py
-    $MYPY gamma_test.py
     ./gamma.py &
-
-    $MYPY delta.py
-    $MYPY delta_test.py
     ./delta.py &
-
-    $MYPY epsilon.py
     ./epsilon.py &
-
     # zeta
     # eta
     # theta
@@ -56,7 +53,7 @@
     # psi
     # omega
 
-    echo 'all started'
+    echo '~~{{(( all started ))}}~~'
 
     wait -n
     # wait for anyone to exit
