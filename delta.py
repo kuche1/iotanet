@@ -1,56 +1,71 @@
 #! /usr/bin/env python3
 
+# TODO this can crash
+# perhaps it's best to just do the threaded shit
+
+import time
+import argparse
 import os
+import shutil
 
-from beta import FOLDER_RECEIVED_UNPROCESSED
+from alpha import ITER_SLEEP_SEC, create_send_entry
+from beta import encrypt_symetric
+from gamma import FOLDER_REQUESTS, TYPE_RESPONSE, SEP
 
-HERE = os.path.dirname(os.path.realpath(__file__))
+def read_file_bytes(file:str) -> bytes:
+    with open(file, 'rb') as f:
+        return f.read()
 
-FOLDER_RECEIVED = f'{HERE}/_received'
-FOLDER_RECEIVED_TMP = f'{FOLDER_RECEIVED}_tmp'
+def read_file_str(file:str) -> str:
+    with open(file, 'r') as f:
+        return f.read()
 
-CMD_PUSH = b'0'
+def read_file_int_positive_or_0(file:str) -> int:
+    data = read_file_str(file)
+    num = int(data)
+    assert num >= 0
+    return num
 
-CMD_GET_PUB_KEY = b'1'
-
-def main():
-
-    os.makedirs(FOLDER_RECEIVED, exist_ok=True)
+def main() -> None:
 
     while True:
 
-        message_files = []
-        for _path, _folders, message_files in os.walk(FOLDER_RECEIVED_UNPROCESSED):
+        time.sleep(ITER_SLEEP_SEC)
+
+        request_folders:list[str] = []
+        for _path, request_folders, _files in os.walk(FOLDER_REQUESTS):
             break
         
-        for file in message_files:
+        for request_folder in request_folders:
 
-            path_source = f'{FOLDER_RECEIVED_UNPROCESSED}/{file}'
-            path_tmp = f'{FOLDER_RECEIVED_TMP}/file'
-            path_dest = f'{FOLDER_RECEIVED}/{file}'
+            path = f'{FOLDER_REQUESTS}/{request_folder}'
 
-            with open(path_source, 'rb') as f:
-                message = f.read()
-            
-            if len(message) <= 0:
-                print('bad message')
-                os.remove(path_source)
-                continue
-            
-            cmd = message[0:1]
-            args = message[1:]
+            query = read_file_bytes(f'{path}/query')
+            sym_key = read_file_bytes(f'{path}/sym_key')
+            sym_iv = read_file_bytes(f'{path}/sym_iv')
+            ip = read_file_str(f'{path}/ip')
+            port = read_file_int_positive_or_0(f'{path}/port')
+            query_id = read_file_bytes(f'{path}/id')
+            return_path = read_file_bytes(f'{path}/return_path')
 
-            if cmd == CMD_PUSH:
+            print()
 
-                with open(path_tmp, 'wb') as f:
-                    f.write(args)
-                
-                os.remove(cmd)
+            resp = b'yes, I got your request: ' + query
+            print(f'{resp=}')
 
-                shutil.move(path_tmp, path_dest)
+            resp = TYPE_RESPONSE + str(len(query_id)).encode() + SEP + query_id + resp
+            print(f'{resp=}')
 
-            else:
+            resp = encrypt_symetric(resp, sym_key, sym_iv)
+            print(f'{resp=}')
 
-                print(f'unknown command: {cmd!r}')
+            payload = return_path + resp
 
-main()
+            create_send_entry(ip, port, payload)
+
+            shutil.rmtree(path)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser('daemon: request handler')
+    args = parser.parse_args()
+    main()

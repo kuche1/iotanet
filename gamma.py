@@ -1,13 +1,21 @@
 #! /usr/bin/env python3
 
-# TODO this can crash
+# TODO this can crash (?)
+# also, the fucking constant checks are so annoying, maybe it's best if we
+# just run a new thread for each message and just wait for them all to finish
 
 import time
 import os
 import argparse
+import shutil
 
 from alpha import ITER_SLEEP_SEC, create_send_entry
 from beta import Node, send_1way, Symetric_key, generate_send_1way_header, encrypt_symetric, FOLDER_RECEIVED_UNPROCESSED, generate_symetric_key, SYMETRIC_KEY_SIZE_BYTES, SYMETRIC_KEY_IV_SIZE_BYTES
+
+HERE = os.path.dirname(os.path.realpath(__file__))
+
+FOLDER_REQUESTS = f'{HERE}/_requests'
+FOLDER_REQUESTS_TMP = f'{FOLDER_REQUESTS}_tmp'
 
 TYPE_REQUEST = b'0'
 TYPE_RESPONSE = b'1'
@@ -52,6 +60,9 @@ def send_circular(query:bytes, query_id:bytes, path_to_dest:list[Node], path_way
 
 def process_messages() -> None:
 
+    os.makedirs(FOLDER_REQUESTS, exist_ok=True)
+    os.makedirs(FOLDER_REQUESTS_TMP, exist_ok=True)
+
     while True:
 
         time.sleep(ITER_SLEEP_SEC)
@@ -60,9 +71,9 @@ def process_messages() -> None:
         for _path, _folders, message_files in os.walk(FOLDER_RECEIVED_UNPROCESSED):
             break
         
-        for file in message_files:
+        for message_file in message_files:
 
-            path = f'{FOLDER_RECEIVED_UNPROCESSED}/{file}'
+            path = f'{FOLDER_RECEIVED_UNPROCESSED}/{message_file}'
 
             with open(path, 'rb') as f:
                 data = f.read()
@@ -160,6 +171,8 @@ def process_messages() -> None:
                     print('invalid query id len')
                     os.remove(path)
                     continue
+                
+                return_path = payload
 
                 print()
                 print(f'{query_len=}')
@@ -170,24 +183,36 @@ def process_messages() -> None:
                 print(f'{port=}')
                 print(f'{query_id_len=}')
                 print(f'{query_id=}')
-                print(f'{payload=}')
+                print(f'{return_path=}')
                 print()
 
-                resp = b'yes, I got your request: ' + query
+                root_tmp = f'{FOLDER_REQUESTS_TMP}/{message_file}'
+                toor_saved = f'{FOLDER_REQUESTS}/{message_file}'
 
-                print(f'{resp=}')
+                os.mkdir(root_tmp)
 
-                resp = TYPE_RESPONSE + query_id_len_bytes + SEP + query_id + resp
+                with open(f'{root_tmp}/query', 'wb') as f:
+                    f.write(query)
 
-                print(f'{resp=}')
+                with open(f'{root_tmp}/sym_key', 'wb') as f:
+                    f.write(sym_key)
 
-                resp = encrypt_symetric(resp, sym_key, sym_iv)
+                with open(f'{root_tmp}/sym_iv', 'wb') as f:
+                    f.write(sym_iv)
 
-                print(f'{resp=}')
+                with open(f'{root_tmp}/ip', 'w') as f:
+                    f.write(ip)
 
-                payload = payload + resp
+                with open(f'{root_tmp}/port', 'w') as f:
+                    f.write(str(port))
 
-                create_send_entry(ip, port, payload)
+                with open(f'{root_tmp}/id', 'wb') as f:
+                    f.write(query_id)
+
+                with open(f'{root_tmp}/return_path', 'wb') as f:
+                    f.write(return_path)
+                
+                shutil.move(root_tmp, toor_saved)
 
             elif type_ == TYPE_RESPONSE:
 

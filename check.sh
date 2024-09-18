@@ -10,4 +10,5 @@
     $MYPY beta_test.py
     $MYPY gamma.py
     $MYPY gamma_test.py
+    $MYPY delta.py
 }
