@@ -89,3 +89,7 @@
 #     send_1way(msg_as_bytes, path)
 
 # main()
+
+import sys
+print('this file is too old')
+sys.exit(1)
