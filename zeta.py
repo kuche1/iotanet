@@ -339,6 +339,6 @@ def test() -> None:
     thr.join()
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser('Epsilon Node; call directly to run tests')
+    parser = argparse.ArgumentParser('call directly to run tests')
     args = parser.parse_args()
     test()
