@@ -8,21 +8,21 @@ import shutil
 import random
 
 import util
+from util import Addr
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 
 FOLDER_TO_SEND = f'{HERE}/_to_send'
 FOLDER_TO_SEND_TMP = f'{FOLDER_TO_SEND}_tmp'
 
-FILE_IP = 'ip'
-FILE_PORT = 'port'
+FILE_ADDR = 'addr'
 FILE_DATA = 'data'
 
 GRACE_PERIOD_BEFORE_SENDING_SEC = 0.5
 
 ITER_SLEEP_SEC = 0.1
 
-def create_send_entry(ip:str, port:int, data:bytes) -> None:
+def create_send_entry(addr:Addr, data:bytes) -> None:
 
     now = time.time()
 
@@ -32,11 +32,7 @@ def create_send_entry(ip:str, port:int, data:bytes) -> None:
     os.mkdir(root)
     # if this fails: (the parent folder doesn't exist) or (someone else already tried to send a message at the exact same time)
 
-    with open(f'{root}/{FILE_IP}', 'w') as f:
-        f.write(ip)
-
-    with open(f'{root}/{FILE_PORT}', 'w') as f:
-        f.write(str(port))
+    util.file_write_addr(f'{root}/{FILE_ADDR}', addr)
 
     with open(f'{root}/{FILE_DATA}', 'wb') as f:
         f.write(data)
@@ -45,8 +41,7 @@ def create_send_entry(ip:str, port:int, data:bytes) -> None:
 
 def handle_folder(root:str) -> None:
 
-    ip = util.file_read_str(f'{root}/{FILE_IP}')
-    port = util.file_read_int_positive(f'{root}/{FILE_PORT}')
+    addr = util.file_read_addr(f'{root}/{FILE_ADDR}')
     data = util.file_read_bytes(f'{root}/{FILE_DATA}')
 
     # print()
@@ -55,7 +50,7 @@ def handle_folder(root:str) -> None:
 
     sock = socket.socket()
 
-    sock.connect((ip, port))
+    sock.connect(addr)
 
     sock.sendall(data)
 

@@ -10,7 +10,7 @@ import util
 
 from alpha import ITER_SLEEP_SEC, create_send_entry
 from beta import encrypt_symetric, FILE_PUBLIC_KEY
-from gamma import FOLDER_REQUESTS, MESSAGE_TYPE_RESPONSE, SEP
+from gamma import FOLDER_REQUESTS, MESSAGE_TYPE_RESPONSE, SEP, FILENAME_ADDR
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 
@@ -24,8 +24,7 @@ def handle_folder(path:str) -> None:
 
     query = util.file_read_bytes(f'{path}/query')
     sym_key = util.file_read_symetric_key(f'{path}/sym_key')
-    ip = util.file_read_str(f'{path}/ip')
-    port = util.file_read_int_positive_or_0(f'{path}/port')
+    addr = util.file_read_addr(f'{path}/{FILENAME_ADDR}')
     query_id = util.file_read_bytes(f'{path}/id')
     return_path = util.file_read_bytes(f'{path}/return_path')
 
@@ -61,7 +60,7 @@ def handle_folder(path:str) -> None:
     resp = encrypt_symetric(resp, sym_key)
     resp = return_path + resp
 
-    create_send_entry(ip, port, resp)
+    create_send_entry(addr, resp)
 
 def main() -> None:
 

@@ -7,6 +7,10 @@ SYMETRIC_KEY_SIZE_BYTES = 32 # 32 bytes, for AES-256
 SYMETRIC_BLOCKSIZE_BYTES = 16
 SYMETRIC_KEY_IV_SIZE_BYTES = SYMETRIC_BLOCKSIZE_BYTES
 
+Ip = str
+Port = int
+Addr = tuple[Ip,Port]
+
 Symetric_key = tuple[bytes, bytes]
 
 ######
@@ -48,7 +52,7 @@ def try_finally(fnc:Callable[[],None], cleanup:Callable[[],None]) -> None:
         cleanup()
 
 ######
-###### keys: str operation
+###### key: string operation
 ######
 
 def symetric_key_to_bytes(key:Symetric_key) -> bytes:
@@ -68,7 +72,7 @@ def chop_symetric_key(data:bytes) -> tuple[Symetric_key, bytes]:
     return (sym_key, sym_iv), data
 
 ######
-###### keys: file IO
+###### key: file IO
 ######
 
 def file_read_symetric_key(file:str) -> Symetric_key:
@@ -90,3 +94,43 @@ def file_read_symetric_key(file:str) -> Symetric_key:
 def file_write_symetric_key(file:str, key:Symetric_key) -> None:
     with open(file, 'wb') as f:
         f.write(symetric_key_to_bytes(key))
+
+######
+###### addr: serialisation
+######
+
+def addr_to_bytes(addr:Addr) -> bytes:
+    sep = b';'
+    ip, port = addr
+    return ip.encode() + sep + str(port).encode() + sep
+
+def chop_addr(data:bytes) -> tuple[Addr, bytes]:
+    sep = b';'
+
+    idx = data.index(sep)
+    ip_bytes = data[:idx]
+    data = data[idx + len(sep):]
+
+    ip = ip_bytes.decode()
+
+    idx = data.index(sep)
+    port_bytes = data[:idx]
+    data = data[idx + len(sep):]
+
+    port = int(port_bytes.decode())
+
+    return (ip, port), data
+
+def file_write_addr(file:str, addr:Addr) -> None:
+    with open(file, 'wb') as f:
+        f.write(addr_to_bytes(addr))
+
+def file_read_addr(file:str) -> Addr:
+
+    with open(file, 'rb') as f:
+        data = f.read()
+
+    addr, data = chop_addr(data)
+    assert len(data) == 0
+
+    return addr

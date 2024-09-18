@@ -24,6 +24,7 @@ FILE_IDENTIFICATOR_KEY = f'{HERE}/_identificator_key'
 
 FILENAME_PRIVATE_DATA = 'private_data'
 FILENAME_RESPONSE = 'response'
+FILENAME_ADDR = 'addr'
 
 MESSAGE_TYPE_REQUEST = b'0'
 MESSAGE_TYPE_RESPONSE = b'1'
@@ -95,7 +96,7 @@ def handle_file(path:str, message_file:str) -> None:
         err, ip_bytes, payload = chop_until_next_sep(payload)
         assert not err
 
-        ip = ip_bytes.decode()
+        ip = ip_bytes.decode() # TODO use the util serialisation fnc
 
         err, port_bytes, payload = chop_until_next_sep(payload)
         assert not err
@@ -121,8 +122,7 @@ def handle_file(path:str, message_file:str) -> None:
         # print(f'{query_len=}')
         # print(f'{query=}')
         # print(f'{sym_key=}')
-        # print(f'{ip=}')
-        # print(f'{port=}')
+        # print(f'{addr=}')
         # print(f'{query_id_len=}')
         # print(f'{query_id=}')
         # print(f'{return_path=}')
@@ -138,11 +138,7 @@ def handle_file(path:str, message_file:str) -> None:
 
         util.file_write_symetric_key(f'{root_tmp}/sym_key', sym_key)
 
-        with open(f'{root_tmp}/ip', 'w') as f:
-            f.write(ip)
-
-        with open(f'{root_tmp}/port', 'w') as f:
-            f.write(str(port))
+        util.file_write_addr(f'{root_tmp}/{FILENAME_ADDR}', (ip, port))
 
         with open(f'{root_tmp}/id', 'wb') as f:
             f.write(query_id)

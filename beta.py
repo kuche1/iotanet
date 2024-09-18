@@ -15,7 +15,7 @@ import shutil
 from typing import cast
 
 import util
-from util import Symetric_key, SYMETRIC_KEY_SIZE_BYTES, SYMETRIC_BLOCKSIZE_BYTES
+from util import Symetric_key, SYMETRIC_KEY_SIZE_BYTES, SYMETRIC_BLOCKSIZE_BYTES, Addr
 
 from alpha import create_send_entry
 
@@ -29,9 +29,6 @@ FILE_PRIVATE_KEY = f'{HERE}/_private_key'
 
 Private_key = RSAPrivateKey
 Public_key = RSAPublicKey
-Ip = str
-Port = int
-Addr = tuple[Ip,Port]
 Node = tuple[Addr,Public_key]
 Socket = socket.socket
 
@@ -217,13 +214,13 @@ def handle_msg(payload:bytes, private_key:Private_key, connection_time:float) ->
 
     if cmd == CMD_SEND:
 
-        ip_as_bytes, port_as_bytes = args.split(CMD_SEND_SEP)
+        ip_as_bytes, port_as_bytes = args.split(CMD_SEND_SEP) # TODO use the util function for searialising addr
 
         ip = ip_as_bytes.decode()
 
         port = int(port_as_bytes)
 
-        create_send_entry(ip, port, payload)
+        create_send_entry((ip, port), payload)
 
     elif cmd == CMD_PUSH:
 
@@ -279,21 +276,21 @@ def generate_send_1way_header(path:list[Node]) -> tuple[Addr, bytes, Symetric_ke
 
             data += encrypt_asymetric(CMD_SEND + ip_next.encode() + CMD_SEND_SEP + str(port_next).encode(), public_key_next)
 
-def generate_send_1way_payload(payload:bytes, path:list[Node]) -> tuple[Ip, Port, bytes]:
+def generate_send_1way_payload(payload:bytes, path:list[Node]) -> tuple[Addr, bytes]:
 
-    (ip, port), header, sym_key = generate_send_1way_header(path)
+    addr, header, sym_key = generate_send_1way_header(path)
 
     payload = encrypt_symetric(payload, sym_key)
 
     payload = header + payload
     
-    return ip, port, payload
+    return addr, payload
 
 def send_1way(payload:bytes, path:list[Node]) -> None:
 
-    ip, port, payload = generate_send_1way_payload(payload, path)
+    addr, payload = generate_send_1way_payload(payload, path)
 
-    create_send_entry(ip, port, payload)
+    create_send_entry(addr, payload)
 
 ######
 ###### main
