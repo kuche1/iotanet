@@ -11,8 +11,15 @@ from cryptography.hazmat.primitives import padding as crypto_padding
 import threading
 import time
 import os
+import shutil
+from typing import cast
 
 from alpha import create_send_entry
+
+HERE = os.path.dirname(os.path.realpath(__file__))
+
+FOLDER_RECEIVED = f'{HERE}/_received'
+FOLDER_RECEIVED_TMP = f'{FOLDER_RECEIVED}_tmp'
 
 Private_key = RSAPrivateKey
 Public_key = RSAPublicKey
@@ -21,18 +28,6 @@ Port = int
 Addr = tuple[Ip,Port]
 Node = tuple[Addr,Public_key]
 Socket = socket.socket
-
-######
-###### class
-######
-
-class Bucket:
-    def __init__(s, data:Any) -> None:
-        s.set(data)
-    def set(s, data:Any) -> None:
-        s.data = data
-    def get(s) -> Any:
-        return s.data
 
 ######
 ###### basic fnc
@@ -78,6 +73,34 @@ def decrypt_asymetric(msg:bytes, key:Private_key) -> bytes:
             label=None
         )
     )
+
+def private_key_to_bytes(key:Private_key) -> bytes:
+    return key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption()
+    )
+
+def bytes_to_private_key(data:bytes) -> Private_key:
+    key = serialization.load_pem_private_key(
+        data,
+        password=None,
+    )
+
+    return cast(Private_key, key)
+
+def public_key_to_bytes(key:Public_key) -> bytes:
+    return key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
+
+def bytes_to_public_key(data:bytes) -> Public_key:
+    key = serialization.load_pem_public_key(
+        data,
+    )
+
+    return cast(Public_key, key)
 
 ######
 ###### symetric encryption
@@ -127,7 +150,7 @@ CMD_SEND_SEP = b':'
 CMD_PUSH = b'1'
 
 # TODO all messages that are meant for us should go to a folder instead of using a callback
-def handle_incoming_connections(buck_sock:Bucket, port:int, private_key:Private_key, on_recv:Callable[[bytes],None]) -> None:
+def handle_incoming_connections(port:int, private_key:Private_key) -> None:
 
     sock = socket.socket()
 
@@ -135,25 +158,17 @@ def handle_incoming_connections(buck_sock:Bucket, port:int, private_key:Private_
 
     sock.listen()
 
-    buck_sock.set(sock)
-
     while True:
 
-        try:
-            client_sock, _client_addr = sock.accept()
-        except OSError:
-            # thread owner has closed the socket
-            break
-        
+        client_sock, _client_addr = sock.accept()
+
         connection_time = time.time()
 
-        threading.Thread(target=handle_client, args=(private_key, on_recv, client_sock, connection_time)).start()
+        threading.Thread(target=handle_client, args=(private_key, client_sock, connection_time)).start()
 
     sock.close()
 
-    buck_sock.set(None)
-
-def handle_client(private_key:Private_key, on_recv:Callable[[bytes],None], client:Socket, connection_time:float) -> None:
+def handle_client(private_key:Private_key, client:Socket, connection_time:float) -> None:
 
     payload = b''
 
@@ -173,11 +188,9 @@ def handle_client(private_key:Private_key, on_recv:Callable[[bytes],None], clien
 
     client.close()
     
-    for_us, actual_data = handle_msg(payload, private_key)
-    if for_us:
-        on_recv(actual_data)
+    handle_msg(payload, private_key, connection_time)
 
-def handle_msg(payload:bytes, private_key:Private_key) -> tuple[bool, bytes]:
+def handle_msg(payload:bytes, private_key:Private_key, connection_time:float) -> None:
 
     print()
     print(f'received message {payload!r}')
@@ -185,7 +198,7 @@ def handle_msg(payload:bytes, private_key:Private_key) -> tuple[bool, bytes]:
 
     if len(payload) < ASYMETRIC_KEY_SIZE_BYTES:
         print(f'someone is fucking with us')
-        return False, b''
+        return
     
     req = payload[:ASYMETRIC_KEY_SIZE_BYTES]
     payload = payload[ASYMETRIC_KEY_SIZE_BYTES:]
@@ -218,19 +231,23 @@ def handle_msg(payload:bytes, private_key:Private_key) -> tuple[bool, bytes]:
 
         payload = decrypt_symetric(payload, asym_key, asym_iv)
 
-        return True, payload
+        data_tmp = f'{FOLDER_RECEIVED_TMP}/{connection_time}'
+        data_saved = f'{FOLDER_RECEIVED}/{connection_time}'
+
+        with open(data_tmp, 'wb') as f: # this cannot fail since the incoming connection handler is single-threaded
+            f.write(payload)
+        
+        shutil.move(data_tmp, data_saved)
 
     else:
 
         print(f'got unknown command `{cmd!r}`')
 
-    return False, b''
-
 ######
 ###### send
 ######
 
-def send(payload:bytes, path:list[Node]) -> None:
+def send_1way(payload:bytes, path:list[Node]) -> None:
 
     assert len(path)
 
@@ -259,88 +276,31 @@ def send(payload:bytes, path:list[Node]) -> None:
     create_send_entry(ip, port, payload)
 
 ######
-###### test
+###### main
 ######
 
-def test() -> None:
+def main(port:int, private_key:Private_key) -> None:
 
-    ####
-    #### sym enc/dec
-    ####
+    os.makedirs(FOLDER_RECEIVED, exist_ok=True)
+    os.makedirs(FOLDER_RECEIVED_TMP, exist_ok=True)
 
-    original = b'This is a secret message.'
-
-    messeeg = original
-
-    key1, iv1 = generate_symetric_key()
-    key2, iv2 = generate_symetric_key()
-
-    messeeg = encrypt_symetric(messeeg, key1, iv1)
-
-    print("Single Encrypted Message:", messeeg)
-
-    messeeg = encrypt_symetric(messeeg, key2, iv2)
-
-    print("Double Encrypted Message:", messeeg)
-
-    messeeg = decrypt_symetric(messeeg, key2, iv2)
-
-    print("Single Decrypted Message:", messeeg)
-
-    messeeg = decrypt_symetric(messeeg, key1, iv1)
-
-    print("Double Decrypted Message:", messeeg)
-
-    assert messeeg == original
-
-    ####
-    #### asym enc/dec
-    ####
-
-    msg = 'fxewagv4reytgesrfdgvfy5ey645r'
-    msg_as_bytes = msg.encode()
-    priv, pub = generate_asymetric_keys()
-    msg_as_bytes = encrypt_asymetric(msg_as_bytes, pub)
-    assert decrypt_asymetric(msg_as_bytes, priv).decode() == msg
-
-    ####
-    #### send/recv self
-    ####
-
-    priv, pub = generate_asymetric_keys()
-
-    buck_sock = Bucket(None)
-    on_recv = lambda data: print(f'received: {data!r}')
-    thr = threading.Thread(target=handle_incoming_connections, args=(buck_sock, 6969, priv, on_recv))
-    thr.start()
-
-    print('waiting')
-
-    while buck_sock.get() != None:
-        time.sleep(0.1)
-    
-    print('ready')
-
-    msg = 'sex sex SEEEXXXX $###33333XXXXXXHHHHHHs'
-
-    msg_as_bytes = msg.encode()
-
-    path = [
-        (('127.0.0.1', 6969), pub),
-        (('127.0.0.1', 6969), pub),
-        (('127.0.0.1', 6969), pub),
-        (('127.0.0.1', 6969), pub),
-    ]
-
-    send(msg_as_bytes, path)
-
-    time.sleep(10)
-
-    buck_sock.get().close() # a bit forced
-
-    thr.join()
+    handle_incoming_connections(port, private_key)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser('call directly to run tests')
+
+    parser = argparse.ArgumentParser('daemon: receiver')
+    parser.add_argument('port', type=int)
     args = parser.parse_args()
-    test()
+
+    priv, pub = generate_asymetric_keys()
+
+    priv_as_bytes = private_key_to_bytes(priv)
+    pub_as_bytes = public_key_to_bytes(pub)
+
+    print()
+    print(f'generated private key:\n{priv_as_bytes!r}')
+    print()
+    print(f'generated public key:\n{pub_as_bytes!r}')
+    print()
+
+    main(args.port, priv)
