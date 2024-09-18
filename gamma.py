@@ -44,7 +44,7 @@ def chop_until_next_sep(payload:bytes) -> tuple[str, bytes, bytes]:
 
 def send_circular(query:bytes, private_data:bytes, path_to_dest:list[Node], path_way_back:list[Node]) -> None:
 
-    (ip_back, port_back), header_back, response_sym_key, response_sym_iv = generate_send_1way_header(path_way_back)
+    (ip_back, port_back), header_back, response_sym_key = generate_send_1way_header(path_way_back)
 
     identificator_sym_key, identificator_sym_iv = util.file_read_symetric_key(FILE_IDENTIFICATOR_KEY)
 
@@ -54,8 +54,7 @@ def send_circular(query:bytes, private_data:bytes, path_to_dest:list[Node], path
         MESSAGE_TYPE_REQUEST + \
         str(len(query)).encode() + SEP + \
         query + \
-        response_sym_key + \
-        response_sym_iv + \
+        util.symetric_key_to_bytes(response_sym_key) + \
         ip_back.encode() + SEP + \
         str(port_back).encode() + SEP + \
         str(len(query_identificator)).encode() + SEP + \

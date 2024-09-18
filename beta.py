@@ -250,8 +250,7 @@ def handle_msg(payload:bytes, private_key:Private_key, connection_time:float) ->
 ###### send
 ######
 
-# TODO return the sym key as 1
-def generate_send_1way_header(path:list[Node]) -> tuple[Addr, bytes, bytes, bytes]:
+def generate_send_1way_header(path:list[Node]) -> tuple[Addr, bytes, Symetric_key]:
 
     assert len(path) >= 0
 
@@ -274,7 +273,7 @@ def generate_send_1way_header(path:list[Node]) -> tuple[Addr, bytes, bytes, byte
             data += encrypt_asymetric(CMD_PUSH + sym_key + sym_iv, public_key_cur)
 
             assert target_addr != None
-            return cast(Addr, target_addr), data, sym_key, sym_iv
+            return cast(Addr, target_addr), data, (sym_key, sym_iv)
 
         else:
 
@@ -284,9 +283,9 @@ def generate_send_1way_header(path:list[Node]) -> tuple[Addr, bytes, bytes, byte
 
 def generate_send_1way_payload(payload:bytes, path:list[Node]) -> tuple[Ip, Port, bytes]:
 
-    (ip, port), header, sym_key, sym_iv = generate_send_1way_header(path)
+    (ip, port), header, sym_key = generate_send_1way_header(path)
 
-    payload = encrypt_symetric(payload, (sym_key, sym_iv))
+    payload = encrypt_symetric(payload, sym_key)
 
     payload = header + payload
     

@@ -3,7 +3,8 @@
 {
     set -euo pipefail
 
-    SLEEP='0.2'
+    MYPY='mypy --strict --no-incremental'
+    # without `--no-incremental` doesnt always work
 
     if [ $# -ne 1 ]; then
         echo 'you need to give exactly 1 argument - port'
@@ -15,17 +16,26 @@
     trap 'kill -- -$$' EXIT
     # kill all children on exit
 
-    ./check.sh
+    $MYPY util.py
 
+    $MYPY alpha.py
     ./alpha.py &
-    sleep $SLEEP
+
+    $MYPY beta.py
+    $MYPY beta_test.py
     ./beta.py $port &
-    sleep $SLEEP
+
+    $MYPY gamma.py
+    $MYPY gamma_test.py
     ./gamma.py &
-    sleep $SLEEP
+
+    $MYPY delta.py
+    $MYPY delta_test.py
     ./delta.py &
-    sleep $SLEEP
+
+    $MYPY epsilon.py
     ./epsilon.py &
+
     # zeta
     # eta
     # theta
