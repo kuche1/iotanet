@@ -22,6 +22,9 @@ FOLDER_RESPONSES_TMP = f'{FOLDER_RESPONSES}_tmp'
 
 FILE_IDENTIFICATOR_KEY = f'{HERE}/_identificator_key'
 
+FILENAME_PRIVATE_DATA = 'private_data'
+FILENAME_RESPONSE = 'response'
+
 MESSAGE_TYPE_REQUEST = b'0'
 MESSAGE_TYPE_RESPONSE = b'1'
 
@@ -39,13 +42,13 @@ def chop_until_next_sep(payload:bytes) -> tuple[str, bytes, bytes]:
 
     return '', data, payload
 
-def send_circular(query:bytes, query_id:bytes, path_to_dest:list[Node], path_way_back:list[Node]) -> None:
+def send_circular(query:bytes, private_data:bytes, path_to_dest:list[Node], path_way_back:list[Node]) -> None:
 
     (ip_back, port_back), header_back, response_sym_key, response_sym_iv = generate_send_1way_header(path_way_back)
 
     identificator_sym_key, identificator_sym_iv = util.file_read_symetric_key(FILE_IDENTIFICATOR_KEY)
 
-    query_identificator = encrypt_symetric(query_id, identificator_sym_key, identificator_sym_iv)
+    query_identificator = encrypt_symetric(private_data, identificator_sym_key, identificator_sym_iv)
 
     payload = \
         MESSAGE_TYPE_REQUEST + \
@@ -190,10 +193,10 @@ def handle_file(path:str, message_file:str) -> None:
 
         os.mkdir(root_tmp)
 
-        with open(f'{root_tmp}/id', 'wb') as f:
+        with open(f'{root_tmp}/{FILENAME_PRIVATE_DATA}', 'wb') as f:
             f.write(query_id)
 
-        with open(f'{root_tmp}/response', 'wb') as f:
+        with open(f'{root_tmp}/{FILENAME_RESPONSE}', 'wb') as f:
             f.write(query_response)
         
         shutil.move(root_tmp, root_saved)

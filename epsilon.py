@@ -8,15 +8,15 @@ import shutil
 import util
 
 from alpha import ITER_SLEEP_SEC
-from gamma import FOLDER_RESPONSES
+from gamma import FOLDER_RESPONSES, FILENAME_PRIVATE_DATA, FILENAME_RESPONSE
 
 def handle_folder(path:str) -> None:
 
-    query_id = util.file_read_bytes(f'{path}/id')
-    response = util.file_read_bytes(f'{path}/response')
+    private_data = util.file_read_bytes(f'{path}/{FILENAME_PRIVATE_DATA}')
+    response = util.file_read_bytes(f'{path}/{FILENAME_RESPONSE}')
 
     print()
-    print(f'{query_id=}')
+    print(f'{private_data=}')
     print(f'{response=}')
 
 def main() -> None:
