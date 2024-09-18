@@ -12,7 +12,7 @@ from gamma import FOLDER_RESPONSES
 
 def handle_folder(path:str) -> None:
 
-    query_id = util.file_read_bytes(f'{path}/encrypted_id')
+    query_id = util.file_read_bytes(f'{path}/id')
     response = util.file_read_bytes(f'{path}/response')
 
     print()

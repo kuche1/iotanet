@@ -14,6 +14,8 @@ import os
 import shutil
 from typing import cast
 
+from util import Symetric_key, SYMETRIC_KEY_SIZE_BYTES, SYMETRIC_BLOCKSIZE_BYTES, SYMETRIC_KEY_IV_SIZE_BYTES
+
 from alpha import create_send_entry
 
 HERE = os.path.dirname(os.path.realpath(__file__))
@@ -26,7 +28,6 @@ FILE_PRIVATE_KEY = f'{HERE}/_private_key'
 
 Private_key = RSAPrivateKey
 Public_key = RSAPublicKey
-Symetric_key = tuple[bytes, bytes]
 Ip = str
 Port = int
 Addr = tuple[Ip,Port]
@@ -109,13 +110,6 @@ def bytes_to_public_key(data:bytes) -> Public_key:
 ######
 ###### symetric encryption
 ######
-
-SYMETRIC_BLOCKSIZE_BYTES = 16
-
-SYMETRIC_KEY_SIZE_BYTES = 32
-# 32 bytes, for AES-256
-
-SYMETRIC_KEY_IV_SIZE_BYTES = SYMETRIC_BLOCKSIZE_BYTES
 
 def generate_symetric_key() -> Symetric_key:
     key = os.urandom(SYMETRIC_KEY_SIZE_BYTES)

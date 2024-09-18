@@ -46,7 +46,7 @@
     # psi
     # omega
 
-    echo 'All started'
+    echo 'all started'
 
     wait -n
     # wait for anyone to exit
