@@ -1,5 +1,7 @@
 #! /usr/bin/env python3
 
+# TODO much of this could cause a crash
+
 import socket
 import os
 import time
