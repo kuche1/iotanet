@@ -121,7 +121,7 @@ def main() -> None:
             shutil.rmtree(root)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser('sender')
+    parser = argparse.ArgumentParser('daemon: sender')
     args = parser.parse_args()
 
     main()
