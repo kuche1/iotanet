@@ -1,3 +1,4 @@
+#! /usr/bin/env python3
 
 import socket
 import argparse
@@ -331,7 +332,7 @@ def test() -> None:
 
     send(msg_as_bytes, path)
 
-    time.sleep(5)
+    time.sleep(10)
 
     buck_sock.get().close() # a bit forced
 
