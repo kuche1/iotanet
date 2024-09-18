@@ -14,7 +14,8 @@ import os
 import shutil
 from typing import cast
 
-from util import Symetric_key, SYMETRIC_KEY_SIZE_BYTES, SYMETRIC_BLOCKSIZE_BYTES, SYMETRIC_KEY_IV_SIZE_BYTES
+import util
+from util import Symetric_key, SYMETRIC_KEY_SIZE_BYTES, SYMETRIC_BLOCKSIZE_BYTES
 
 from alpha import create_send_entry
 
@@ -211,7 +212,7 @@ def handle_msg(payload:bytes, private_key:Private_key, connection_time:float) ->
     # print(f'got request: {req!r}')
     # print()
 
-    cmd = req[0:1] # this really is req[0] but in a way that makes mypy happy
+    cmd = req[0:1] # this really is just req[0] but in a way that makes mypy happy
     args = req[1:]
 
     if cmd == CMD_SEND:
@@ -226,13 +227,10 @@ def handle_msg(payload:bytes, private_key:Private_key, connection_time:float) ->
 
     elif cmd == CMD_PUSH:
 
-        asym_key = args[:SYMETRIC_KEY_SIZE_BYTES]
-        asym_iv = args[SYMETRIC_KEY_SIZE_BYTES:]
+        sym_key, args = util.chop_symetric_key(args)
+        assert len(args) == 0
 
-        assert len(asym_key) == SYMETRIC_KEY_SIZE_BYTES
-        assert len(asym_iv) == SYMETRIC_KEY_IV_SIZE_BYTES
-
-        payload = decrypt_symetric(payload, (asym_key,asym_iv))
+        payload = decrypt_symetric(payload, sym_key)
 
         data_tmp = f'{FOLDER_RECEIVED_UNPROCESSED_TMP}/{connection_time}'
         data_saved = f'{FOLDER_RECEIVED_UNPROCESSED}/{connection_time}'
