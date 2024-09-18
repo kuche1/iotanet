@@ -12,8 +12,13 @@ from alpha import ITER_SLEEP_SEC, create_send_entry
 from beta import encrypt_symetric, FILE_PUBLIC_KEY
 from gamma import FOLDER_REQUESTS, MESSAGE_TYPE_RESPONSE, SEP
 
+HERE = os.path.dirname(os.path.realpath(__file__))
+
+FOLDER_PEERS = f'{HERE}/_peers'
+
 QUERY_TYPE_GIVE_ME_YOUR_PUBLIC_KEY = b'0'
 QUERY_TYPE_PING = b'1' # TODO remove this later
+QUERY_TYPE_GIVE_ME_THE_PEERS_YOU_KNOW = b'2'
 
 def handle_folder(path:str) -> None:
 
@@ -41,8 +46,12 @@ def handle_folder(path:str) -> None:
 
         resp = b'yes, I got your request: ' + query
 
-        print()
-        print(f'response to ping: {resp!r}')
+        # print()
+        # print(f'response to ping: {resp!r}')
+
+    elif query_type == QUERY_TYPE_GIVE_ME_THE_PEERS_YOU_KNOW:
+
+        raise NotImplemented
 
     else:
 
@@ -55,6 +64,15 @@ def handle_folder(path:str) -> None:
     create_send_entry(ip, port, resp)
 
 def main() -> None:
+
+    os.makedirs(FOLDER_PEERS, exist_ok=True)
+
+    # create first "artificial" peer
+
+    with open(f'{FOLDER_PEERS}/127.0.0.1:6969', 'wb') as f:
+        f.write(util.file_read_bytes(FILE_PUBLIC_KEY))
+
+    # ...
 
     while True:
 

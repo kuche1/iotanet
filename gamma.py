@@ -71,9 +71,9 @@ def handle_file(path:str, message_file:str) -> None:
 
     if type_ == MESSAGE_TYPE_REQUEST:
 
-        print()
-        print(f'got request: {payload!r}')
-        print()
+        # print()
+        # print(f'got request: {payload!r}')
+        # print()
 
         err, query_len_bytes, payload = chop_until_next_sep(payload)
         assert not err
@@ -120,17 +120,17 @@ def handle_file(path:str, message_file:str) -> None:
         
         return_path = payload
 
-        print()
-        print(f'{query_len=}')
-        print(f'{query=}')
-        print(f'{sym_key=}')
-        print(f'{sym_iv=}')
-        print(f'{ip=}')
-        print(f'{port=}')
-        print(f'{query_id_len=}')
-        print(f'{query_id=}')
-        print(f'{return_path=}')
-        print()
+        # print()
+        # print(f'{query_len=}')
+        # print(f'{query=}')
+        # print(f'{sym_key=}')
+        # print(f'{sym_iv=}')
+        # print(f'{ip=}')
+        # print(f'{port=}')
+        # print(f'{query_id_len=}')
+        # print(f'{query_id=}')
+        # print(f'{return_path=}')
+        # print()
 
         root_tmp = f'{FOLDER_REQUESTS_TMP}/{message_file}'
         root_saved = f'{FOLDER_REQUESTS}/{message_file}'
@@ -162,9 +162,9 @@ def handle_file(path:str, message_file:str) -> None:
 
     elif type_ == MESSAGE_TYPE_RESPONSE:
 
-        print()
-        print(f'got response: {payload!r}')
-        print()
+        # print()
+        # print(f'got response: {payload!r}')
+        # print()
 
         err, query_id_len_bytes, payload = chop_until_next_sep(payload)
         assert not err
@@ -178,9 +178,9 @@ def handle_file(path:str, message_file:str) -> None:
 
         query_response = payload
         
-        print(f'{query_id_len=}')
-        print(f'{encrypted_query_id=}')
-        print(f'{query_response=}')
+        # print(f'{query_id_len=}')
+        # print(f'{encrypted_query_id=}')
+        # print(f'{query_response=}')
 
         root_tmp = f'{FOLDER_RESPONSES_TMP}/{message_file}'
         root_saved = f'{FOLDER_RESPONSES}/{message_file}'

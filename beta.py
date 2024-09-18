@@ -22,6 +22,7 @@ FOLDER_RECEIVED_UNPROCESSED = f'{HERE}/_received_unprocessed'
 FOLDER_RECEIVED_UNPROCESSED_TMP = f'{FOLDER_RECEIVED_UNPROCESSED}_tmp'
 
 FILE_PUBLIC_KEY = f'{HERE}/_public_key'
+FILE_PRIVATE_KEY = f'{HERE}/_private_key'
 
 Private_key = RSAPrivateKey
 Public_key = RSAPublicKey
@@ -196,9 +197,9 @@ def handle_client(private_key:Private_key, client:Socket, connection_time:float)
 
 def handle_msg(payload:bytes, private_key:Private_key, connection_time:float) -> None:
 
-    print()
-    print(f'received message {payload!r}')
-    print()
+    # print()
+    # print(f'received message {payload!r}')
+    # print()
 
     if len(payload) < ASYMETRIC_KEY_SIZE_BYTES:
         print(f'someone is fucking with us')
@@ -208,9 +209,9 @@ def handle_msg(payload:bytes, private_key:Private_key, connection_time:float) ->
     payload = payload[ASYMETRIC_KEY_SIZE_BYTES:]
 
     req = decrypt_asymetric(req, private_key)
-    print()
-    print(f'got request: {req!r}')
-    print()
+    # print()
+    # print(f'got request: {req!r}')
+    # print()
 
     cmd = req[0:1] # this really is req[0] but in a way that makes mypy happy
     args = req[1:]
@@ -315,23 +316,34 @@ if __name__ == '__main__':
     parser.add_argument('port', type=int)
     args = parser.parse_args()
 
-    priv, pub = generate_asymetric_keys()
+    if os.path.isfile(FILE_PUBLIC_KEY) and os.path.isfile(FILE_PRIVATE_KEY):
 
-    priv_as_bytes = private_key_to_bytes(priv)
-    pub_as_bytes = public_key_to_bytes(pub)
+        with open(FILE_PRIVATE_KEY, 'rb') as fr:
+            priv_bytes = fr.read()
 
-    with open(FILE_PUBLIC_KEY, 'wb') as f:
-        f.write(pub_as_bytes)
+        with open(FILE_PUBLIC_KEY, 'rb') as fr:
+            pub_bytes = fr.read()
 
-    print()
-    print('generated private key:')
-    print(priv_as_bytes)
-    print()
-    print('generated public key:')
-    print(pub_as_bytes)
-    print()
-    print('public key written to file:')
-    print(FILE_PUBLIC_KEY)
-    print()
+        priv = bytes_to_private_key(priv_bytes)
+
+        pub = bytes_to_public_key(pub_bytes)
+
+        print('loaded existing keys')
+
+    else:
+
+        priv, pub = generate_asymetric_keys()
+
+        priv_bytes = private_key_to_bytes(priv)
+
+        pub_bytes = public_key_to_bytes(pub)
+
+        with open(FILE_PRIVATE_KEY, 'wb') as fw:
+            fw.write(priv_bytes)
+
+        with open(FILE_PUBLIC_KEY, 'wb') as fw:
+            fw.write(pub_bytes)
+
+        print('generated new keys')
 
     main(args.port, priv)

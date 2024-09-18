@@ -49,9 +49,9 @@ def handle_folder(root:str) -> None:
     port = util.file_read_int_positive(f'{root}/{FILE_PORT}')
     data = util.file_read_bytes(f'{root}/{FILE_DATA}')
 
-    print()
-    print(f'sending to {ip}:{port} message {data!r}')
-    print()
+    # print()
+    # print(f'sending to {ip}:{port} message {data!r}')
+    # print()
 
     sock = socket.socket()
 

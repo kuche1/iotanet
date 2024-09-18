@@ -1,4 +1,7 @@
 
 _public_key
+_private_key
+
+_peers/
 
 __pycache__/

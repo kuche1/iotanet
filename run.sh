@@ -3,6 +3,8 @@
 {
     set -euo pipefail
 
+    SLEEP='0.2'
+
     if [ $# -ne 1 ]; then
         echo 'you need to give exactly 1 argument - port'
         exit 1
@@ -16,9 +18,13 @@
     ./check.sh
 
     ./alpha.py &
+    sleep $SLEEP
     ./beta.py $port &
+    sleep $SLEEP
     ./gamma.py &
+    sleep $SLEEP
     ./delta.py &
+    sleep $SLEEP
     ./epsilon.py &
     # zeta
     # eta
@@ -39,6 +45,8 @@
     # chi
     # psi
     # omega
+
+    echo 'All started'
 
     wait -n
     # wait for anyone to exit
