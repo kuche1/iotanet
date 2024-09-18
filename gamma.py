@@ -1,9 +1,5 @@
 #! /usr/bin/env python3
 
-# TODO this can crash (?)
-# also, the fucking constant checks are so annoying, maybe it's best if we
-# just run a new thread for each message and just wait for them all to finish
-
 import time
 import os
 import argparse
