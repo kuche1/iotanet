@@ -126,6 +126,7 @@ def encrypt_symetric(msg:bytes, key:bytes, iv:bytes) -> bytes:
 
     return encrypted
 
+# TODO just pass key and iv as 1 argument, and not 2
 def decrypt_symetric(msg:bytes, key:bytes, iv:bytes) -> bytes:
     cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
     decryptor = cipher.decryptor()
