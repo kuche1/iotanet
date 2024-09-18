@@ -179,7 +179,7 @@ def handle_file(path:str, message_file:str) -> None:
         query_id = payload[:query_id_len]
         payload = payload[query_id_len:]
 
-        id_key, id_iv = util.file_read_symetric_key(FILE_IDENTIFICATOR_KEY) # TODO this shit seems fucking retarded, I don't think the FS needs to get involved
+        id_key, id_iv = util.file_read_symetric_key(FILE_IDENTIFICATOR_KEY)
         query_id = decrypt_symetric(query_id, id_key, id_iv)
 
         query_response = payload
