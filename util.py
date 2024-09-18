@@ -48,7 +48,7 @@ def try_finally(fnc:Callable[[],None], cleanup:Callable[[],None]) -> None:
         cleanup()
 
 ######
-###### keys: file IO
+###### keys: file IO / str operation
 ######
 
 def file_read_symetric_key(file:str) -> Symetric_key:
@@ -74,3 +74,7 @@ def file_write_symetric_key(file:str, key_iv:Symetric_key) -> None:
     with open(file, 'wb') as f:
         f.write(key)
         f.write(iv)
+
+def symetric_key_to_bytes(key:Symetric_key) -> bytes:
+    k, i = key
+    return k + i

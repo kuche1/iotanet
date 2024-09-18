@@ -67,13 +67,6 @@ def main() -> None:
 
     os.makedirs(FOLDER_PEERS, exist_ok=True)
 
-    # create first "artificial" peer
-
-    with open(f'{FOLDER_PEERS}/127.0.0.1:6969', 'wb') as f:
-        f.write(util.file_read_bytes(FILE_PUBLIC_KEY))
-
-    # ...
-
     while True:
 
         time.sleep(ITER_SLEEP_SEC)
