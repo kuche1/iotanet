@@ -28,10 +28,25 @@ def handle_folder(path:str) -> None:
 
     resp_header = MESSAGE_TYPE_RESPONSE + str(len(query_id)).encode() + SEP + query_id
 
-    print()
+    assert len(query) > 0
 
-    resp = b'yes, I got your request: ' + query
-    print(f'{resp=}')
+    query_type = query[0:1]
+    query = query[1:]
+
+    if query_type == QUERY_TYPE_GIVE_ME_YOUR_PUBLIC_KEY:
+
+        raise NotImplemented
+    
+    elif query_type == QUERY_TYPE_PING:
+
+        resp = b'yes, I got your request: ' + query
+
+        print()
+        print(f'response to ping: {resp!r}')
+
+    else:
+
+        assert False, f'unknown query type {query_type!r}'
 
     resp = resp_header + resp
     resp = encrypt_symetric(resp, sym_key, sym_iv)

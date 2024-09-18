@@ -24,6 +24,8 @@ def file_read_int_positive(file:str) -> int:
     assert num > 0
     return num
 
+# TODO this doesn't actually protect from shit
+# there should be an except that turns the error into a string and prints it
 def try_finally(fnc:Callable[[],None], cleanup:Callable[[],None]) -> None:
     # TODO we could add some fancy formating, along with timestamp in case of errors
     try:
