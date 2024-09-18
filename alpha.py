@@ -1,13 +1,13 @@
 #! /usr/bin/env python3
 
-# TODO much of this could cause a crash
-
 import socket
 import os
 import time
 import argparse
 import shutil
 import random
+
+import util
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 
@@ -42,6 +42,24 @@ def create_send_entry(ip:str, port:int, data:bytes) -> None:
         f.write(data)
 
     shutil.move(root, target_root)
+
+def handle_folder(root:str) -> None:
+
+    ip = util.file_read_str(f'{root}/{FILE_IP}')
+    port = util.file_read_int_positive(f'{root}/{FILE_PORT}')
+    data = util.file_read_bytes(f'{root}/{FILE_DATA}')
+
+    print()
+    print(f'sending to {ip}:{port} message {data!r}')
+    print()
+
+    sock = socket.socket()
+
+    sock.connect((ip, port))
+
+    sock.sendall(data)
+
+    sock.close()
 
 def main() -> None:
 
@@ -89,38 +107,10 @@ def main() -> None:
 
             root = f'{FOLDER_TO_SEND}/{entry}'
 
-            with open(f'{root}/{FILE_IP}', 'r') as f:
-                ip = f.read()
-
-            with open(f'{root}/{FILE_PORT}', 'r') as f:
-                try:
-                    port = int(f.read())
-                except ValueError:
-                    print(f'bad folder, invalid port: {root}')
-                    shutil.rmtree(root)
-                    continue
-
-            with open(f'{root}/{FILE_DATA}', 'rb') as f:
-                data = f.read()
-
-            print()
-            print(f'sending to {ip}:{port} message {data!r}')
-            print()
-
-            sock = socket.socket()
-
-            try:
-                sock.connect((ip, port))
-            except ConnectionRefusedError:
-                print(f'connection refused to {ip}:{port}')
-                shutil.rmtree(root)
-                continue
-
-            sock.sendall(data)
-
-            sock.close()
-
-            shutil.rmtree(root)
+            util.try_finally(
+                lambda: handle_folder(root),
+                lambda: shutil.rmtree(root),
+            )
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('daemon: sender')

@@ -5,6 +5,8 @@
 
     MYPY='mypy --strict'
 
+    $MYPY util.py
+
     $MYPY alpha.py
     $MYPY beta.py
     $MYPY beta_test.py

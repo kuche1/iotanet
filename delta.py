@@ -6,52 +6,21 @@ import os
 import shutil
 from typing import Callable
 
+import util
+
 from alpha import ITER_SLEEP_SEC, create_send_entry
 from beta import encrypt_symetric
 from gamma import FOLDER_REQUESTS, TYPE_RESPONSE, SEP
 
-######
-###### generic: file read
-######
-
-def read_file_bytes(file:str) -> bytes:
-    with open(file, 'rb') as f:
-        return f.read()
-
-def read_file_str(file:str) -> str:
-    with open(file, 'r') as f:
-        return f.read()
-
-def read_file_int_positive_or_0(file:str) -> int:
-    data = read_file_str(file)
-    num = int(data)
-    assert num >= 0
-    return num
-
-######
-###### generic: try_finally
-######
-
-def try_finally(fnc:Callable[[],None], cleanup:Callable[[],None]) -> None:
-    # TODO we could add some fancy formating, along with timestamp in case of errors
-    try:
-        fnc()
-    finally:
-        cleanup()
-
-######
-###### ...
-######
-
 def handle_folder(path:str) -> None:
 
-    query = read_file_bytes(f'{path}/query')
-    sym_key = read_file_bytes(f'{path}/sym_key')
-    sym_iv = read_file_bytes(f'{path}/sym_iv')
-    ip = read_file_str(f'{path}/ip')
-    port = read_file_int_positive_or_0(f'{path}/port')
-    query_id = read_file_bytes(f'{path}/id')
-    return_path = read_file_bytes(f'{path}/return_path')
+    query = util.file_read_bytes(f'{path}/query')
+    sym_key = util.file_read_bytes(f'{path}/sym_key')
+    sym_iv = util.file_read_bytes(f'{path}/sym_iv')
+    ip = util.file_read_str(f'{path}/ip')
+    port = util.file_read_int_positive_or_0(f'{path}/port')
+    query_id = util.file_read_bytes(f'{path}/id')
+    return_path = util.file_read_bytes(f'{path}/return_path')
 
     print()
 
@@ -80,7 +49,7 @@ def main() -> None:
 
                 path = f'{FOLDER_REQUESTS}/{request_folder}'
 
-                try_finally(
+                util.try_finally(
                     lambda: handle_folder(path),
                     lambda: shutil.rmtree(path),
                 )
