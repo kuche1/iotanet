@@ -23,6 +23,7 @@ FOLDER_RECEIVED_UNPROCESSED_TMP = f'{FOLDER_RECEIVED_UNPROCESSED}_tmp'
 
 Private_key = RSAPrivateKey
 Public_key = RSAPublicKey
+Symetric_key = tuple[bytes, bytes]
 Ip = str
 Port = int
 Addr = tuple[Ip,Port]
@@ -113,7 +114,7 @@ SYMETRIC_KEY_SIZE_BYTES = 32
 
 SYMETRIC_KEY_IV_SIZE_BYTES = SYMETRIC_BLOCKSIZE_BYTES
 
-def generate_symetric_key() -> tuple[bytes, bytes]:
+def generate_symetric_key() -> Symetric_key:
     key = os.urandom(SYMETRIC_KEY_SIZE_BYTES)
     iv = os.urandom(SYMETRIC_BLOCKSIZE_BYTES)
     return key, iv
@@ -242,37 +243,50 @@ def handle_msg(payload:bytes, private_key:Private_key, connection_time:float) ->
 
     else:
 
-        print(f'got unknown command `{cmd!r}`')
+        print(f'got unknown command {cmd!r}')
 
 ######
 ###### send
 ######
 
-def generate_send_1way_payload(payload:bytes, path:list[Node]) -> tuple[Ip, Port, bytes]:
+def generate_send_1way_header(path:list[Node]) -> tuple[Addr, bytes, bytes, bytes]:
 
-    assert len(path)
+    assert len(path) >= 0
 
-    is_receiver = True
+    target_addr = None
 
-    for [ip, port], public_key in reversed(path):
+    data = b''
 
-        if is_receiver:
+    while True:
 
-            is_receiver = False
+        (ip_cur, port_cur), public_key_cur = path[0]
+        path = path[1:]
+
+        if target_addr == None:
+            target_addr = (ip_cur, port_cur)
+
+        if len(path) <= 0:
 
             sym_key, sym_iv = generate_symetric_key()
 
-            payload = encrypt_symetric(payload, sym_key, sym_iv)
+            data += encrypt_asymetric(CMD_PUSH + sym_key + sym_iv, public_key_cur)
 
-            payload = \
-                encrypt_asymetric(CMD_PUSH + sym_key + sym_iv, public_key) + \
-                payload
+            assert target_addr != None
+            return cast(Addr, target_addr), data, sym_key, sym_iv
 
         else:
 
-            payload = \
-                encrypt_asymetric(CMD_SEND + ip.encode() + CMD_SEND_SEP + str(port).encode(), public_key) + \
-                payload
+            (ip_next, port_next), public_key_next = path[0]
+
+            data += encrypt_asymetric(CMD_SEND + ip_next.encode() + CMD_SEND_SEP + str(port_next).encode(), public_key_next)
+
+def generate_send_1way_payload(payload:bytes, path:list[Node]) -> tuple[Ip, Port, bytes]:
+
+    (ip, port), header, sym_key, sym_iv = generate_send_1way_header(path)
+
+    payload = encrypt_symetric(payload, sym_key, sym_iv)
+
+    payload = header + payload
     
     return ip, port, payload
 

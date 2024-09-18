@@ -8,4 +8,6 @@
     $MYPY alpha.py
     $MYPY beta.py
     $MYPY beta_test.py
+    $MYPY gamma.py
+    $MYPY gamma_test.py
 }

@@ -18,9 +18,9 @@ FILE_IP = 'ip'
 FILE_PORT = 'port'
 FILE_DATA = 'data'
 
-GRACE_PERIOD_BEFORE_SENDING_SEC = 1.5
+GRACE_PERIOD_BEFORE_SENDING_SEC = 0.5
 
-ITER_SLEEP_SEC = 0.5
+ITER_SLEEP_SEC = 0.1
 
 def create_send_entry(ip:str, port:int, data:bytes) -> None:
 
