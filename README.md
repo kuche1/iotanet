@@ -1,6 +1,14 @@
 
 https://en.wikipedia.org/wiki/Greek_alphabet
 
+alpha
+
+beta
+
+gamma
+
+delta
+
 epsilon
 
 zeta

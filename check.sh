@@ -5,6 +5,6 @@
 
     MYPY='mypy --strict'
 
-    $MYPY epsilon.py
-    $MYPY zeta.py
+    $MYPY alpha.py
+    $MYPY beta.py
 }
