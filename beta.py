@@ -149,7 +149,6 @@ CMD_SEND_SEP = b':'
 
 CMD_PUSH = b'1'
 
-# TODO all messages that are meant for us should go to a folder instead of using a callback
 def handle_incoming_connections(port:int, private_key:Private_key) -> None:
 
     sock = socket.socket()
