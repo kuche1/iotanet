@@ -5,14 +5,15 @@ import time
 import os
 import shutil
 
+import util
+
 from alpha import ITER_SLEEP_SEC
 from gamma import FOLDER_RESPONSES
-from delta import read_file_bytes, try_finally
 
 def handle_folder(path:str) -> None:
 
-    query_id = read_file_bytes(f'{path}/id')
-    response = read_file_bytes(f'{path}/response')
+    query_id = util.file_read_bytes(f'{path}/encrypted_id')
+    response = util.file_read_bytes(f'{path}/response')
 
     print()
     print(f'{query_id=}')
@@ -30,7 +31,7 @@ def main() -> None:
 
                 path = f'{FOLDER_RESPONSES}/{response_folder}'
 
-                try_finally(
+                util.try_finally(
                     lambda: handle_folder(path),
                     lambda: shutil.rmtree(path),
                 )

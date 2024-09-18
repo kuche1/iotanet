@@ -8,6 +8,9 @@ import time
 import os
 import argparse
 import shutil
+import errno
+
+import util
 
 from alpha import ITER_SLEEP_SEC, create_send_entry
 from beta import Node, send_1way, Symetric_key, generate_send_1way_header, encrypt_symetric, FOLDER_RECEIVED_UNPROCESSED, generate_symetric_key, SYMETRIC_KEY_SIZE_BYTES, SYMETRIC_KEY_IV_SIZE_BYTES
@@ -61,6 +64,148 @@ def send_circular(query:bytes, query_id:bytes, path_to_dest:list[Node], path_way
 
     return (identificator_sym_key, identificator_sym_iv), len(query_identificator), (response_sym_key, response_sym_iv)
 
+def handle_file(path:str, message_file:str) -> None:
+
+    data = util.file_read_bytes(path)
+
+    assert len(data) > 0
+
+    type_ = data[0:1]
+    payload = data[1:]
+
+    if type_ == TYPE_REQUEST:
+
+        print()
+        print(f'got request: {payload!r}')
+        print()
+
+        err, query_len_bytes, payload = chop_until_next_sep(payload)
+        assert not err
+        
+        query_len = int(query_len_bytes)
+
+        assert query_len >= 0
+
+        assert query_len <= len(payload)
+
+        query = payload[:query_len]
+        payload = payload[query_len:]
+
+        sym_key = payload[:SYMETRIC_KEY_SIZE_BYTES]
+        payload = payload[SYMETRIC_KEY_SIZE_BYTES:]
+        assert len(sym_key) == SYMETRIC_KEY_SIZE_BYTES
+
+        sym_iv = payload[:SYMETRIC_KEY_IV_SIZE_BYTES]
+        payload = payload[SYMETRIC_KEY_IV_SIZE_BYTES:]
+        assert len(sym_iv) == SYMETRIC_KEY_IV_SIZE_BYTES
+
+        err, ip_bytes, payload = chop_until_next_sep(payload)
+        assert not err
+
+        ip = ip_bytes.decode()
+
+        err, port_bytes, payload = chop_until_next_sep(payload)
+        assert not err
+
+        port = int(port_bytes)
+        assert port > 0
+
+        err, query_id_len_bytes, payload = chop_until_next_sep(payload)
+        assert not err
+        
+        query_id_len = int(query_id_len_bytes)
+
+        assert query_id_len >= 0
+
+        query_id = payload[:query_id_len]
+        payload = payload[query_id_len:]
+
+        assert len(query_id) == query_id_len
+        
+        return_path = payload
+
+        print()
+        print(f'{query_len=}')
+        print(f'{query=}')
+        print(f'{sym_key=}')
+        print(f'{sym_iv=}')
+        print(f'{ip=}')
+        print(f'{port=}')
+        print(f'{query_id_len=}')
+        print(f'{query_id=}')
+        print(f'{return_path=}')
+        print()
+
+        root_tmp = f'{FOLDER_REQUESTS_TMP}/{message_file}'
+        root_saved = f'{FOLDER_REQUESTS}/{message_file}'
+
+        os.mkdir(root_tmp)
+
+        with open(f'{root_tmp}/query', 'wb') as f:
+            f.write(query)
+
+        with open(f'{root_tmp}/sym_key', 'wb') as f:
+            f.write(sym_key)
+
+        with open(f'{root_tmp}/sym_iv', 'wb') as f:
+            f.write(sym_iv)
+
+        with open(f'{root_tmp}/ip', 'w') as f:
+            f.write(ip)
+
+        with open(f'{root_tmp}/port', 'w') as f:
+            f.write(str(port))
+
+        with open(f'{root_tmp}/id', 'wb') as f:
+            f.write(query_id)
+
+        with open(f'{root_tmp}/return_path', 'wb') as f:
+            f.write(return_path)
+        
+        shutil.move(root_tmp, root_saved)
+
+    elif type_ == TYPE_RESPONSE:
+
+        print()
+        print(f'got response: {payload!r}')
+        print()
+
+        err, query_id_len_bytes, payload = chop_until_next_sep(payload)
+        assert not err
+
+        query_id_len = int(query_id_len_bytes)
+
+        assert query_id_len >= 0
+
+        encrypted_query_id = payload[:query_id_len]
+        payload = payload[query_id_len:]
+
+        query_response = payload
+        
+        print(f'{query_id_len=}')
+        print(f'{encrypted_query_id=}')
+        print(f'{query_response=}')
+
+        root_tmp = f'{FOLDER_RESPONSES_TMP}/{message_file}'
+        root_saved = f'{FOLDER_RESPONSES}/{message_file}'
+
+        os.mkdir(root_tmp)
+
+        with open(f'{root_tmp}/encrypted_id', 'wb') as f:
+            f.write(encrypted_query_id)
+
+        with open(f'{root_tmp}/response', 'wb') as f:
+            f.write(query_response)
+        
+        shutil.move(root_tmp, root_saved)
+
+    else:
+
+        print()
+        print(f'invalid type {type_!r}')
+        print(f'payload: {payload!r}')
+        print()
+
 def process_messages() -> None:
 
     os.makedirs(FOLDER_REQUESTS, exist_ok=True)
@@ -81,199 +226,17 @@ def process_messages() -> None:
 
             path = f'{FOLDER_RECEIVED_UNPROCESSED}/{message_file}'
 
-            with open(path, 'rb') as f:
-                data = f.read()
-
-            if len(data) <= 0:
-                print('empty message')
-                os.remove(path)
-                continue
-
-            type_ = data[0:1]
-            payload = data[1:]
-
-            if type_ == TYPE_REQUEST:
-
-                print()
-                print(f'got request: {payload!r}')
-                print()
-
-                err, query_len_bytes, payload = chop_until_next_sep(payload)
-
-                if err:
-                    print(f'cant get query len: {err}')
-                    os.remove(path)
-                    continue
-                
+            def remove_the_file() -> None:
                 try:
-                    query_len = int(query_len_bytes)
-                except ValueError:
-                    print('non-number query length')
                     os.remove(path)
-                    continue
+                except OSError as e:
+                    if e.errno != errno.ENOENT:
+                        raise
 
-                if query_len < 0:
-                    print('negative query length')
-                    os.remove(path)
-                    continue
-                
-                if query_len > len(payload):
-                    print('query length more than payload length')
-                    os.remove(path)
-                    continue
-
-                query = payload[:query_len]
-                payload = payload[query_len:]
-
-                sym_key = payload[:SYMETRIC_KEY_SIZE_BYTES]
-                payload = payload[SYMETRIC_KEY_SIZE_BYTES:]
-                if len(sym_key) != SYMETRIC_KEY_SIZE_BYTES:
-                    print('partal sym_key')
-                    os.remove(path)
-                    continue
-
-                sym_iv = payload[:SYMETRIC_KEY_IV_SIZE_BYTES]
-                payload = payload[SYMETRIC_KEY_IV_SIZE_BYTES:]
-                if len(sym_iv) != SYMETRIC_KEY_IV_SIZE_BYTES:
-                    print('partal sym_iv')
-                    os.remove(path)
-                    continue
-
-                err, ip_bytes, payload = chop_until_next_sep(payload)
-
-                ip = ip_bytes.decode()
-
-                err, port_bytes, payload = chop_until_next_sep(payload)
-
-                try:
-                    port = int(port_bytes)
-                except ValueError:
-                    print('invalid port')
-                    os.remove(path)
-                    continue
-
-                err, query_id_len_bytes, payload = chop_until_next_sep(payload)
-                if err:
-                    print(f'could not determine query id length: {err}')
-                    os.remove(path)
-                    continue
-                
-                try:
-                    query_id_len = int(query_id_len_bytes)
-                except ValueError:
-                    print('query id len is not a number')
-                    os.remove(path)
-                    continue
-
-                if query_id_len < 0:
-                    print('query id len < 0')
-                    os.remove(path)
-                    continue
-
-                query_id = payload[:query_id_len]
-                payload = payload[query_id_len:]
-
-                if len(query_id) != query_id_len:
-                    print('invalid query id len')
-                    os.remove(path)
-                    continue
-                
-                return_path = payload
-
-                print()
-                print(f'{query_len=}')
-                print(f'{query=}')
-                print(f'{sym_key=}')
-                print(f'{sym_iv=}')
-                print(f'{ip=}')
-                print(f'{port=}')
-                print(f'{query_id_len=}')
-                print(f'{query_id=}')
-                print(f'{return_path=}')
-                print()
-
-                root_tmp = f'{FOLDER_REQUESTS_TMP}/{message_file}'
-                root_saved = f'{FOLDER_REQUESTS}/{message_file}'
-
-                os.mkdir(root_tmp)
-
-                with open(f'{root_tmp}/query', 'wb') as f:
-                    f.write(query)
-
-                with open(f'{root_tmp}/sym_key', 'wb') as f:
-                    f.write(sym_key)
-
-                with open(f'{root_tmp}/sym_iv', 'wb') as f:
-                    f.write(sym_iv)
-
-                with open(f'{root_tmp}/ip', 'w') as f:
-                    f.write(ip)
-
-                with open(f'{root_tmp}/port', 'w') as f:
-                    f.write(str(port))
-
-                with open(f'{root_tmp}/id', 'wb') as f:
-                    f.write(query_id)
-
-                with open(f'{root_tmp}/return_path', 'wb') as f:
-                    f.write(return_path)
-                
-                shutil.move(root_tmp, root_saved)
-
-            elif type_ == TYPE_RESPONSE:
-
-                print()
-                print(f'got response: {payload!r}')
-                print()
-
-                err, query_id_len_bytes, payload = chop_until_next_sep(payload)
-                if err:
-                    print(f'could not determine query id length: {err}')
-                    os.remove(path)
-                    continue
-
-                try:
-                    query_id_len = int(query_id_len_bytes)
-                except ValueError:
-                    print('query id len not an int')
-                    os.remove(path)
-                    continue
-
-                if query_id_len < 0:
-                    print(f'query id len < 0')
-                    os.remove(path)
-                    continue
-
-                query_id = payload[:query_id_len] # TODO this is the encrypted version
-                payload = payload[query_id_len:]
-
-                query_response = payload
-                
-                print(f'{query_id_len=}')
-                print(f'{query_id=}')
-                print(f'{query_response=}')
-
-                root_tmp = f'{FOLDER_RESPONSES_TMP}/{message_file}'
-                root_saved = f'{FOLDER_RESPONSES}/{message_file}'
-
-                os.mkdir(root_tmp)
-
-                with open(f'{root_tmp}/id', 'wb') as f:
-                    f.write(query_id)
-
-                with open(f'{root_tmp}/response', 'wb') as f:
-                    f.write(query_response)
-                
-                shutil.move(root_tmp, root_saved)
-
-            else:
-
-                print()
-                print(f'invalid type {type_!r}')
-                print(f'payload: {payload!r}')
-                print()
-
-            os.remove(path)
+            util.try_finally(
+                lambda: handle_file(path, message_file),
+                remove_the_file,
+            )
 
 def main() -> None:
     process_messages()
