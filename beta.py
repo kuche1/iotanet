@@ -116,7 +116,9 @@ def generate_symetric_key() -> Symetric_key:
     iv = os.urandom(SYMETRIC_BLOCKSIZE_BYTES)
     return key, iv
 
-def encrypt_symetric(msg:bytes, key:bytes, iv:bytes) -> bytes:
+def encrypt_symetric(msg:bytes, key_iv:Symetric_key) -> bytes:
+    key, iv = key_iv
+
     padder = crypto_padding.PKCS7(SYMETRIC_BLOCKSIZE_BYTES * 8).padder()
     padded = padder.update(msg) + padder.finalize()
 
@@ -126,8 +128,9 @@ def encrypt_symetric(msg:bytes, key:bytes, iv:bytes) -> bytes:
 
     return encrypted
 
-# TODO just pass key and iv as 1 argument, and not 2
-def decrypt_symetric(msg:bytes, key:bytes, iv:bytes) -> bytes:
+def decrypt_symetric(msg:bytes, key_iv:Symetric_key) -> bytes:
+    key, iv = key_iv
+
     cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
     decryptor = cipher.decryptor()
     decrypted = decryptor.update(msg) + decryptor.finalize()
@@ -229,7 +232,7 @@ def handle_msg(payload:bytes, private_key:Private_key, connection_time:float) ->
         assert len(asym_key) == SYMETRIC_KEY_SIZE_BYTES
         assert len(asym_iv) == SYMETRIC_KEY_IV_SIZE_BYTES
 
-        payload = decrypt_symetric(payload, asym_key, asym_iv)
+        payload = decrypt_symetric(payload, (asym_key,asym_iv))
 
         data_tmp = f'{FOLDER_RECEIVED_UNPROCESSED_TMP}/{connection_time}'
         data_saved = f'{FOLDER_RECEIVED_UNPROCESSED}/{connection_time}'
@@ -247,6 +250,7 @@ def handle_msg(payload:bytes, private_key:Private_key, connection_time:float) ->
 ###### send
 ######
 
+# TODO return the sym key as 1
 def generate_send_1way_header(path:list[Node]) -> tuple[Addr, bytes, bytes, bytes]:
 
     assert len(path) >= 0
@@ -282,7 +286,7 @@ def generate_send_1way_payload(payload:bytes, path:list[Node]) -> tuple[Ip, Port
 
     (ip, port), header, sym_key, sym_iv = generate_send_1way_header(path)
 
-    payload = encrypt_symetric(payload, sym_key, sym_iv)
+    payload = encrypt_symetric(payload, (sym_key, sym_iv))
 
     payload = header + payload
     

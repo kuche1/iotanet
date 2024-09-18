@@ -48,7 +48,7 @@ def send_circular(query:bytes, private_data:bytes, path_to_dest:list[Node], path
 
     identificator_sym_key, identificator_sym_iv = util.file_read_symetric_key(FILE_IDENTIFICATOR_KEY)
 
-    query_identificator = encrypt_symetric(private_data, identificator_sym_key, identificator_sym_iv)
+    query_identificator = encrypt_symetric(private_data, (identificator_sym_key, identificator_sym_iv))
 
     payload = \
         MESSAGE_TYPE_REQUEST + \
@@ -180,8 +180,10 @@ def handle_file(path:str, message_file:str) -> None:
         query_id = payload[:query_id_len]
         payload = payload[query_id_len:]
 
-        id_key, id_iv = util.file_read_symetric_key(FILE_IDENTIFICATOR_KEY)
-        query_id = decrypt_symetric(query_id, id_key, id_iv)
+        query_id = decrypt_symetric(
+            query_id,
+            util.file_read_symetric_key(FILE_IDENTIFICATOR_KEY)
+        )
 
         query_response = payload
         

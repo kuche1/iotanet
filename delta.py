@@ -58,7 +58,7 @@ def handle_folder(path:str) -> None:
         assert False, f'unknown query type {query_type!r}'
 
     resp = resp_header + resp
-    resp = encrypt_symetric(resp, sym_key, sym_iv)
+    resp = encrypt_symetric(resp, (sym_key, sym_iv))
     resp = return_path + resp
 
     create_send_entry(ip, port, resp)
