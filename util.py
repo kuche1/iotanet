@@ -1,6 +1,8 @@
 
 from typing import Callable
 
+# TODO we could add `file_read_port`, `file_read_ip` and so on
+
 def file_read_bytes(file:str) -> bytes:
     with open(file, 'rb') as f:
         return f.read()
