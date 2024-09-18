@@ -3,7 +3,12 @@
 {
     set -euo pipefail
 
-    PORT=6969
+    if [ $# -ne 1 ]; then
+        echo 'you need to give exactly 1 argument - port'
+        exit 1
+    fi
+
+    port="$1"
 
     trap 'kill -- -$$' EXIT
     # kill all children on exit
@@ -11,7 +16,7 @@
     ./check.sh
 
     ./alpha.py &
-    ./beta.py $PORT &
+    ./beta.py $port &
     ./gamma.py &
     ./delta.py &
     ./epsilon.py &
