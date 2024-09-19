@@ -173,7 +173,7 @@ def handle_client(private_key:Private_key, client:Socket, connection_time:float)
             return
 
     client.close()
-    
+
     handle_msg(payload, private_key, connection_time)
 
 def handle_msg(payload:bytes, private_key:Private_key, connection_time:float) -> None:
@@ -251,20 +251,24 @@ def generate_send_1way_header(path:list[Node]) -> tuple[Addr, bytes, Symetric_ke
 
             sym_key, sym_iv = generate_symetric_key()
 
-            data += encrypt_asymetric(CMD_PUSH + sym_key + sym_iv, public_key_cur)
+            data += encrypt_asymetric(
+                CMD_PUSH + sym_key + sym_iv
+                ,
+                public_key_cur
+            )
 
             assert target_addr != None
             return cast(Addr, target_addr), data, (sym_key, sym_iv)
 
         else:
 
-            addr_next, public_key_next = path[0]
+            addr_next, _public_key_next = path[0]
 
             data += \
                 encrypt_asymetric(
                     CMD_SEND + util.addr_to_bytes(addr_next)
                     ,
-                    public_key_next
+                    public_key_cur # TODO changed from public_key_next, hope this fixes the issue
                 )
 
 def generate_send_1way_payload(payload:bytes, path:list[Node]) -> tuple[Addr, bytes]:
@@ -299,6 +303,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser('daemon: receiver')
     parser.add_argument('port', type=int)
     args = parser.parse_args()
+
+    # TODO move this to main
 
     if os.path.isfile(FILE_PUBLIC_KEY) and os.path.isfile(FILE_PRIVATE_KEY):
 
