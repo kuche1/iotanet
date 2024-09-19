@@ -88,7 +88,7 @@ FOLDER_PEERS = f'{HERE}/_peers'
 
 PEER_FILENAME_PUBLIC_KEY = 'public_key'
 
-def peer_update(addr:Addr, pub:Public_key) -> None:
+def peer_update_public_key(addr:Addr, pub:Public_key) -> None:
     
     folder_name = util.addr_to_str(addr)
 
@@ -129,7 +129,7 @@ def main() -> None:
 
     os.makedirs(FOLDER_PEERS, exist_ok=True)
 
-    peer_update(
+    peer_update_public_key(
         ('127.0.0.1', util.file_read_port(FILE_PORT)),
         util.file_read_public_key(FILE_PUBLIC_KEY),
     )
