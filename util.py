@@ -168,35 +168,37 @@ def file_read_addr(file:str) -> Addr:
 # TODO allow for peers other than the default ones
 FOLDER_PEERS_DEFAULT = f'{HERE}/_peers_default'
 
-def file_read_peer(path:str) -> Node:
+FILENAME_PEER_PUBLIC_KEY = 'public_key'
 
-    file_name = os.path.basename(path)
+def folder_read_peer(path:str) -> Node:
 
-    peer_addr, nothing = chop_addr_from_str(file_name)
+    peer_addr_str = os.path.basename(path)
+
+    peer_addr, nothing = chop_addr_from_str(peer_addr_str)
     assert len(nothing) == 0
 
-    peer_pub = file_read_public_key(path)
+    peer_pub = file_read_public_key(f'{path}/{FILENAME_PEER_PUBLIC_KEY}')
 
     return (peer_addr, peer_pub)
 
-def get_peer_files() -> list[str]:
+def get_peer_folders() -> list[str]:
     files:list[str] = []
-    for path, _folders, files in os.walk(FOLDER_PEERS_DEFAULT):
-        files = [f'{path}/{file}' for file in files]
+    for path, folders, _files in os.walk(FOLDER_PEERS_DEFAULT):
+        files = [f'{path}/{folder}' for folder in folders]
         break
     return files
 
 def get_peers() -> list[Node]:
     result:list[Node] = []
 
-    for peer_file_path in get_peer_files():
-        result.append(file_read_peer(peer_file_path))
+    for peer_folder_path in get_peer_folders():
+        result.append(folder_read_peer(peer_folder_path))
 
     return result
 
 # TODO this should also include us
 def get_random_peer() -> Node:
-    files = get_peer_files()
-    file = random.choice(files)
-    peer = file_read_peer(file)
+    folders = get_peer_folders()
+    folder = random.choice(folders)
+    peer = folder_read_peer(folder)
     return peer
