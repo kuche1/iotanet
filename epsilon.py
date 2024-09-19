@@ -37,11 +37,11 @@ def handle_folder(path:str) -> None:
     query_type = private_data[0:1]
     private_data = private_data[1:]
 
-    print()
-    print(f'{sender_addr=}')
-    print(f'{query_type=}')
-    print(f'{response=}')
-    print(f'{private_data=}')
+    print('epsilon:')
+    print(f'epsilon: {sender_addr=}')
+    print(f'epsilon: {query_type=}')
+    print(f'epsilon: {response=}')
+    print(f'epsilon: {private_data=}')
 
 def main() -> None:
 

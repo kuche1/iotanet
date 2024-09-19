@@ -135,7 +135,6 @@ RECEIVE_MSG_MAX_SIZE = 1024 * 1024 * 50 # in bytes
 
 CMD_SEND = b'0'
 CMD_PUSH = b'1'
-CMD_GET_PUB_KEY = b'2'
 
 def handle_incoming_connections(port:int, private_key:Private_key) -> None:
 
@@ -184,7 +183,7 @@ def handle_msg(payload:bytes, private_key:Private_key, connection_time:float) ->
     # print()
 
     if len(payload) < ASYMETRIC_KEY_SIZE_BYTES:
-        print(f'someone is fucking with us')
+        print(f'message too short')
         return
     
     req = payload[:ASYMETRIC_KEY_SIZE_BYTES]
@@ -205,6 +204,8 @@ def handle_msg(payload:bytes, private_key:Private_key, connection_time:float) ->
 
         create_send_entry(addr, payload)
 
+        print(f'beta: sending data to {addr}')
+
     elif cmd == CMD_PUSH:
 
         sym_key, args = util.chop_symetric_key(args)
@@ -219,6 +220,8 @@ def handle_msg(payload:bytes, private_key:Private_key, connection_time:float) ->
             f.write(payload)
         
         shutil.move(data_tmp, data_saved)
+
+        print(f'beta: pushing')
 
     else:
 
