@@ -18,10 +18,8 @@ def send_query(query_type:bytes, query_args:bytes, private_data:bytes, dest:Node
 
     query = query_type + query_args
 
-    # TODO we need to save some statistics for each of the peers' reliability
-    # a simple counter for "queries sent to peer" and "successully completed queries"
-    # and I'm no sure if this logic should be here, or in `send_circular`, or even somewhere on a higher level
-    # (we could include the peers on the path in the `private_data`)
+    # TODO
+    # I'm no sure if this logic should be here, or in `send_circular`, or even somewhere on a higher level
     # (actually, the more I think about it, the better of an idea seems that this peer evaluation thing should be in `send_circular` and the path selection too)
 
     path:list[Node] = []
@@ -45,7 +43,7 @@ def send_query(query_type:bytes, query_args:bytes, private_data:bytes, dest:Node
 
     # TODO
     # for addr, _pub in path_without_me:
-    #     util.peer_increase_sent_messages_counter(addr)
+    #     util.peer_increase_queries_sent(addr)
 
 def handle_folder(path:str) -> None:
 
@@ -62,7 +60,7 @@ def handle_folder(path:str) -> None:
 
     # TODO
     # for addr in path_taken:
-    #     util.peer_increase_received_messages_counter(addr)
+    #     util.peer_increase_queries_answered(addr)
 
     print('epsilon:')
     print(f'epsilon: {sender_addr=}')
