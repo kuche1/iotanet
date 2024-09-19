@@ -23,7 +23,7 @@ Symetric_key = tuple[bytes, bytes]
 Node = tuple[Addr,Public_key]
 
 ######
-###### generic: file IO
+###### generic: serialisation
 ######
 
 def file_read_bytes(file:str) -> bytes:
@@ -47,6 +47,18 @@ def file_read_int_positive(file:str) -> int:
     num = file_read_int(file)
     assert num > 0
     return num
+
+def int_to_bytes(num:int) -> bytes:
+    sep = b';'
+    return str(num).encode() + sep
+
+def chop_int(data:bytes) -> tuple[int, bytes]:
+    sep = b';'
+    idx = data.index(sep)
+    num_bytes = data[:idx]
+    data = data[idx + len(sep):]
+    num = int(num_bytes)
+    return num, data
 
 ######
 ###### generic: control flow
@@ -160,6 +172,21 @@ def file_read_addr(file:str) -> Addr:
     assert len(data) == 0
 
     return addr
+
+def list_of_nodes_to_bytes_of_node_addrs(nodes:list[Node]) -> bytes:
+    data = b''
+    data += int_to_bytes(len(nodes))
+    for addr, _pub in nodes:
+        data += addr_to_bytes(addr)
+    return data
+
+def chop_list_of_addrs(data:bytes) -> tuple[list[Addr], bytes]:
+    addrs:list[Addr] = []
+    size, data = chop_int(data)
+    for _ in range(size):
+        addr, data = chop_addr(data)
+        addrs.append(addr)
+    return addrs, data
 
 ######
 ###### peer operations + serialisation

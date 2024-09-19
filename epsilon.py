@@ -18,8 +18,6 @@ def send_query(query_type:bytes, query_args:bytes, private_data:bytes, dest:Node
 
     query = query_type + query_args
 
-    private_data = query_type + private_data
-
     # TODO we need to save some statistics for each of the peers' reliability
     # a simple counter for "queries sent to peer" and "successully completed queries"
     # and I'm no sure if this logic should be here, or in `send_circular`, or even somewhere on a higher level
@@ -35,12 +33,19 @@ def send_query(query_type:bytes, query_args:bytes, private_data:bytes, dest:Node
     path_to_dest = path[:split_idx] + [dest]
     path_way_back = path[split_idx:] + [me]
 
+    path_without_me = path_to_dest + path_way_back[:-1]
+    private_data = query_type + util.list_of_nodes_to_bytes_of_node_addrs(path_without_me) + private_data
+
     send_circular(
         query,
         private_data,
         path_to_dest,
         path_way_back,
     )
+
+    # TODO
+    # for addr, _pub in path_without_me:
+    #     util.peer_increase_sent_messages_counter(addr)
 
 def handle_folder(path:str) -> None:
 
@@ -53,10 +58,17 @@ def handle_folder(path:str) -> None:
     query_type = private_data[0:1]
     private_data = private_data[1:]
 
+    path_taken, private_data = util.chop_list_of_addrs(private_data)
+
+    # TODO
+    # for addr in path_taken:
+    #     util.peer_increase_received_messages_counter(addr)
+
     print('epsilon:')
     print(f'epsilon: {sender_addr=}')
     print(f'epsilon: {query_type=}')
     print(f'epsilon: {response=}')
+    print(f'epsilon: {path_taken=}')
     print(f'epsilon: {private_data=}')
 
 def main() -> None:
