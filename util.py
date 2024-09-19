@@ -3,6 +3,7 @@ from typing import Callable, cast
 import os
 import cryptography
 import cryptography.hazmat.primitives.asymmetric.rsa as cryptography_rsa
+import cryptography.hazmat.primitives.serialization as cryptography_serialization
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 
@@ -84,7 +85,7 @@ def chop_symetric_key(data:bytes) -> tuple[Symetric_key, bytes]:
 ######
 
 def bytes_to_public_key(data:bytes) -> Public_key:
-    key = cryptography.hazmat.primitives.serialization.load_pem_public_key(
+    key = cryptography_serialization.load_pem_public_key(
         data,
     )
     return cast(Public_key, key)
@@ -166,7 +167,6 @@ def file_read_addr(file:str) -> Addr:
 # TODO allow for peers other than the default ones
 FOLDER_PEERS_DEFAULT = f'{HERE}/_peers_default'
 
-# TODO test
 def get_peers() -> list[Node]:
 
     result:list[Node] = []

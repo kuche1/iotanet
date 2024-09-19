@@ -18,6 +18,7 @@
 
     $MYPY \
         util.py \
+        util_test.py \
         alpha.py \
         beta.py \
         beta_test.py \
