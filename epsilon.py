@@ -135,20 +135,6 @@ def main() -> None:
     )
     # TODO stupid
 
-    # TODO ok for testing but should be removed later on
-    peer_update(
-        ('127.0.0.1', 6970),
-        util.file_read_public_key('/var/tmp/iotanet-testing/default-peer-0/_public_key'),
-    )
-    peer_update(
-        ('127.0.0.1', 6971),
-        util.file_read_public_key('/var/tmp/iotanet-testing/default-peer-1/_public_key'),
-    )
-    peer_update(
-        ('127.0.0.1', 6972),
-        util.file_read_public_key('/var/tmp/iotanet-testing/default-peer-2/_public_key'),
-    )
-
     while True:
 
         time.sleep(ITER_SLEEP_SEC)
