@@ -268,7 +268,7 @@ def generate_send_1way_header(path:list[Node]) -> tuple[Addr, bytes, Symetric_ke
                 encrypt_asymetric(
                     CMD_SEND + util.addr_to_bytes(addr_next)
                     ,
-                    public_key_cur # TODO changed from public_key_next, hope this fixes the issue
+                    public_key_cur
                 )
 
 def generate_send_1way_payload(payload:bytes, path:list[Node]) -> tuple[Addr, bytes]:

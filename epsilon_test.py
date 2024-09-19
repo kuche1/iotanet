@@ -14,18 +14,18 @@ query_args = b'gacergcaregr'
 
 private_data = b'12345'
 
+me = (('127.0.0.1', 6969), pub)
+
 path_to_dest = [
-    (('127.0.0.1', 6969), pub),
-    (('127.0.0.1', 6969), pub),
-    (('127.0.0.1', 6969), pub),
-    (('127.0.0.1', 6969), pub),
+    util.get_random_peer(),
+    util.get_random_peer(),
+    me,
 ]
 
 path_way_back = [
-    (('127.0.0.1', 6969), pub),
-    (('127.0.0.1', 6969), pub),
-    (('127.0.0.1', 6969), pub),
-    (('127.0.0.1', 6969), pub),
+    util.get_random_peer(),
+    util.get_random_peer(),
+    me,
 ]
 
 send_query(query_type, query_args, private_data, path_to_dest, path_way_back)
