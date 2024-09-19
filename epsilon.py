@@ -4,6 +4,7 @@ import argparse
 import time
 import os
 import shutil
+import random
 
 import util
 from util import Node
@@ -11,13 +12,28 @@ from util import Node
 from alpha import ITER_SLEEP_SEC
 from gamma import FOLDER_RESPONSES, FILENAME_PRIVATE_DATA, FILENAME_RESPONSE, send_circular, FILENAME_SENDER_ADDR
 
-def send_query(query_type:bytes, query_args:bytes, private_data:bytes, path_to_dest:list[Node], path_way_back:list[Node]) -> None:
+def send_query(query_type:bytes, query_args:bytes, private_data:bytes, dest:Node, me:Node, extra_hops:int) -> None:
 
     assert len(query_type) == 1
 
     query = query_type + query_args
 
     private_data = query_type + private_data
+
+    # TODO we need to save some statistics for each of the peers' reliability
+    # a simple counter for "queries sent to peer" and "successully completed queries"
+    # and I'm no sure if this logic should be here, or in `send_circular`, or even somewhere on a higher level
+    # (we could include the peers on the path in the `private_data`)
+    # (actually, the more I think about it, the better of an idea seems that this peer evaluation thing should be in `send_circular` and the path selection too)
+
+    path:list[Node] = []
+    for _ in range(extra_hops):
+        path.append(util.get_random_peer())
+
+    split_idx = random.randint(0, len(path)-1)
+
+    path_to_dest = path[:split_idx] + [dest]
+    path_way_back = path[split_idx:] + [me]
 
     send_circular(
         query,

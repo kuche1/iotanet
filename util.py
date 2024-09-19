@@ -194,6 +194,7 @@ def get_peers() -> list[Node]:
 
     return result
 
+# TODO this should also include us
 def get_random_peer() -> Node:
     files = get_peer_files()
     file = random.choice(files)
