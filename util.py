@@ -4,6 +4,7 @@ import os
 import cryptography
 import cryptography.hazmat.primitives.asymmetric.rsa as cryptography_rsa
 import cryptography.hazmat.primitives.serialization as cryptography_serialization
+import random
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 
@@ -161,29 +162,40 @@ def file_read_addr(file:str) -> Addr:
     return addr
 
 ######
-###### peer operations
+###### peer operations + serialisation
 ######
 
 # TODO allow for peers other than the default ones
 FOLDER_PEERS_DEFAULT = f'{HERE}/_peers_default'
 
-def get_peers() -> list[Node]:
+def file_read_peer(path:str) -> Node:
 
+    file_name = os.path.basename(path)
+
+    peer_addr, nothing = chop_addr_from_str(file_name)
+    assert len(nothing) == 0
+
+    peer_pub = file_read_public_key(path)
+
+    return (peer_addr, peer_pub)
+
+def get_peer_files() -> list[str]:
+    files:list[str] = []
+    for path, _folders, files in os.walk(FOLDER_PEERS_DEFAULT):
+        files = [f'{path}/{file}' for file in files]
+        break
+    return files
+
+def get_peers() -> list[Node]:
     result:list[Node] = []
 
-    peer_files:list[str] = []
-    for _path, _folders, peer_files in os.walk(FOLDER_PEERS_DEFAULT):
-        break
-    
-    for peer_file in peer_files:
-
-        path = f'{FOLDER_PEERS_DEFAULT}/{peer_file}'
-
-        peer_addr, nothing = chop_addr_from_str(peer_file)
-        assert len(nothing) == 0
-
-        peer_pub = file_read_public_key(path)
-
-        result.append((peer_addr, peer_pub))
+    for peer_file_path in get_peer_files():
+        result.append(file_read_peer(peer_file_path))
 
     return result
+
+def get_random_peer() -> Node:
+    files = get_peer_files()
+    file = random.choice(files)
+    peer = file_read_peer(file)
+    return peer
