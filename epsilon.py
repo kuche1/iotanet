@@ -29,9 +29,7 @@ def send_query(query_type:bytes, query_args:bytes, private_data:bytes, dest:Node
     # I'm no sure if this logic should be here, or in `send_circular`, or even somewhere on a higher level
     # (actually, the more I think about it, the better of an idea seems that this peer evaluation thing should be in `send_circular` and the path selection too)
 
-    path:list[Node] = []
-    for _ in range(extra_hops):
-        path.append(peer_get_random_node())
+    path:list[Node] = peer_get_random_nodes_based_on_reliability(extra_hops)
 
     split_idx = random.randint(0, len(path)-1)
 
@@ -123,30 +121,60 @@ def peer_increase_queries_answered(addr:Addr) -> None:
 
 ### FS
 
-def peer_get_folders() -> list[str]:
-    files:list[str] = []
+def peer_get_node_and_reliability() -> list[tuple[Node, int, int]]:
+
+    folders:list[str] = []
     for path, folders, _files in os.walk(FOLDER_PEERS):
-        files = [f'{path}/{folder}' for folder in folders]
+        folders = [f'{path}/{folder}' for folder in folders]
         break
-    return files
+    
+    ret = []
 
-def peer_folder_read_node(path:str) -> Node:
-    peer_addr_str = os.path.basename(path)
+    for folder_path in folders:
 
-    peer_addr, nothing = util.chop_addr_from_str(peer_addr_str)
-    assert len(nothing) == 0
+        peer_addr_str = os.path.basename(folder_path)
 
-    peer_pub = util.file_read_public_key(f'{path}/{PEER_FILENAME_PUBLIC_KEY}')
+        peer_addr, nothing = util.chop_addr_from_str(peer_addr_str)
+        assert len(nothing) == 0
 
-    return (peer_addr, peer_pub)
+        peer_pub = util.file_read_public_key(f'{folder_path}/{PEER_FILENAME_PUBLIC_KEY}')
+
+        node = (peer_addr, peer_pub)
+
+        queries_sent = util.file_read_int(f'{folder_path}/{PEER_FILENAME_QUERIES_SENT}')
+
+        queries_answered = util.file_read_int(f'{folder_path}/{PEER_FILENAME_QUERIES_ANSWERED}')
+
+        ret.append((node, queries_answered, queries_sent))
+    
+    return ret
 
 ### util
 
-def peer_get_random_node() -> Node:
-    folders = peer_get_folders()
-    folder = random.choice(folders)
-    peer = peer_folder_read_node(folder)
-    return peer
+# TODO keep in mind that your (real) reliability is going
+# to be 100% so you might end up in a situation where you're
+# routing all the traffic on your own node
+def peer_get_random_nodes_based_on_reliability(num:int) -> list[Node]:
+
+    node_succ_total = peer_get_node_and_reliability()
+
+    ret = []
+
+    for _ in range(num):
+
+        # higher number means higher change to be picked
+        # TODO I REALLY need to think about this formula, so that both (inactive nodes get ignored) and (you can't get exposed by the path you take)
+        # also there need to be some sort of mechanism for getting rid of data that is too old
+        node_succ_total.sort(
+            key=lambda i: random.random() * ( (20 + i[1]) / (20 + i[2]) ),
+            reverse=True,
+        )
+
+        node, _, _ = node_succ_total[0]
+
+        ret.append(node)
+
+    return ret
 
 ######
 ###### main

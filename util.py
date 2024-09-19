@@ -5,6 +5,8 @@ import cryptography
 import cryptography.hazmat.primitives.asymmetric.rsa as cryptography_rsa
 import cryptography.hazmat.primitives.serialization as cryptography_serialization
 import random
+import traceback
+import datetime
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 
@@ -72,6 +74,12 @@ def try_finally(fnc:Callable[[],None], cleanup:Callable[[],None]) -> None:
     # TODO we could add some fancy formating, along with timestamp in case of errors
     try:
         fnc()
+    except:
+         err_info = traceback.format_exc()
+         print()
+         print(f'ERROR ({datetime.date.today()}):')
+         print(err_info)
+         print()
     finally:
         cleanup()
 
