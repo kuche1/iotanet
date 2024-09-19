@@ -48,9 +48,8 @@ def send_query(query_type:bytes, query_args:bytes, private_data:bytes, dest:Node
         path_way_back,
     )
 
-    # TODO
-    # for addr, _pub in path_without_me:
-    #     util.peer_increase_queries_sent(addr)
+    for addr, _pub in path_without_me:
+        peer_increase_queries_sent(addr)
 
 ######
 ###### process query answer
@@ -69,9 +68,8 @@ def handle_folder(path:str) -> None:
 
     path_taken, private_data = util.chop_list_of_addrs(private_data)
 
-    # TODO
-    # for addr in path_taken:
-    #     util.peer_increase_queries_answered(addr)
+    for addr in path_taken:
+        peer_increase_queries_answered(addr)
 
     print('epsilon:')
     print(f'epsilon: {sender_addr=}')
@@ -87,16 +85,43 @@ def handle_folder(path:str) -> None:
 FOLDER_PEERS = f'{HERE}/_peers'
 
 PEER_FILENAME_PUBLIC_KEY = 'public_key'
+PEER_FILENAME_QUERIES_SENT = 'queries_sent'
+PEER_FILENAME_QUERIES_ANSWERED = 'queries_answered'
 
-def peer_update_public_key(addr:Addr, pub:Public_key) -> None:
-    
+### creation / update
+
+def peer_create_or_update(addr:Addr, pub:Public_key) -> None:
     folder_name = util.addr_to_str(addr)
-
     peer_folder = f'{FOLDER_PEERS}/{folder_name}'
 
     os.makedirs(peer_folder, exist_ok=True)
 
-    util.file_write_public_key(f'{peer_folder}/{PEER_FILENAME_PUBLIC_KEY}', pub)
+    file_public_key = f'{peer_folder}/{PEER_FILENAME_PUBLIC_KEY}'
+    util.file_write_public_key(file_public_key, pub)
+
+    file_queries_sent = f'{peer_folder}/{PEER_FILENAME_QUERIES_SENT}'
+    if not os.path.isfile(file_queries_sent):
+        util.file_write_int(file_queries_sent, 0)
+    
+    file_queries_answered = f'{peer_folder}/{PEER_FILENAME_QUERIES_ANSWERED}'
+    if not os.path.isfile(file_queries_answered):
+        util.file_write_int(file_queries_answered, 0)
+
+def peer_increase_queries_sent(addr:Addr) -> None:
+    folder_name = util.addr_to_str(addr)
+    peer_folder = f'{FOLDER_PEERS}/{folder_name}'
+
+    file = f'{peer_folder}/{PEER_FILENAME_QUERIES_SENT}'
+    util.file_increase(file)
+
+def peer_increase_queries_answered(addr:Addr) -> None:
+    folder_name = util.addr_to_str(addr)
+    peer_folder = f'{FOLDER_PEERS}/{folder_name}'
+
+    file = f'{peer_folder}/{PEER_FILENAME_QUERIES_ANSWERED}'
+    util.file_increase(file)
+
+### FS
 
 def peer_get_folders() -> list[str]:
     files:list[str] = []
@@ -115,6 +140,8 @@ def peer_folder_read_node(path:str) -> Node:
 
     return (peer_addr, peer_pub)
 
+### util
+
 def peer_get_random_node() -> Node:
     folders = peer_get_folders()
     folder = random.choice(folders)
@@ -129,7 +156,7 @@ def main() -> None:
 
     os.makedirs(FOLDER_PEERS, exist_ok=True)
 
-    peer_update_public_key(
+    peer_create_or_update(
         ('127.0.0.1', util.file_read_port(FILE_PORT)),
         util.file_read_public_key(FILE_PUBLIC_KEY),
     )

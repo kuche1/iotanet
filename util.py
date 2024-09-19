@@ -37,6 +37,11 @@ def int_to_bytes(num:int) -> bytes:
     sep = b';'
     return str(num).encode() + sep
 
+def file_increase(file:str) -> None:
+    # TODO better use replace
+    num = file_read_int(file)
+    file_write_int(file, num + 1)
+
 ######
 ###### generic: serialisation
 ######
