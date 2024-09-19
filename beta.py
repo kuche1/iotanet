@@ -291,20 +291,7 @@ def send_1way(payload:bytes, path:list[Node]) -> None:
 ###### main
 ######
 
-def main(port:int, private_key:Private_key) -> None:
-
-    os.makedirs(FOLDER_RECEIVED_UNPROCESSED, exist_ok=True)
-    os.makedirs(FOLDER_RECEIVED_UNPROCESSED_TMP, exist_ok=True)
-
-    handle_incoming_connections(port, private_key)
-
-if __name__ == '__main__':
-
-    parser = argparse.ArgumentParser('daemon: receiver')
-    parser.add_argument('port', type=int)
-    args = parser.parse_args()
-
-    # TODO move this to main
+def main(port:int) -> None:
 
     if os.path.isfile(FILE_PUBLIC_KEY) and os.path.isfile(FILE_PRIVATE_KEY):
 
@@ -336,4 +323,15 @@ if __name__ == '__main__':
 
         print('generated new keys')
 
-    main(args.port, priv)
+    os.makedirs(FOLDER_RECEIVED_UNPROCESSED, exist_ok=True)
+    os.makedirs(FOLDER_RECEIVED_UNPROCESSED_TMP, exist_ok=True)
+
+    handle_incoming_connections(port, priv)
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser('daemon: receiver')
+    parser.add_argument('port', type=int)
+    args = parser.parse_args()
+
+    main(args.port)
