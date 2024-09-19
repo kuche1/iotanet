@@ -15,7 +15,7 @@ from gamma import FOLDER_REQUESTS, MESSAGE_TYPE_RESPONSE, SEP, FILENAME_ADDR
 HERE = os.path.dirname(os.path.realpath(__file__))
 
 QUERY_TYPE_GIVE_ME_YOUR_PUBLIC_KEY = b'0'
-QUERY_TYPE_PING = b'1' # TODO remove this later
+QUERY_TYPE_PING = b'1' # we could remove this one
 QUERY_TYPE_GIVE_ME_THE_PEERS_YOU_KNOW = b'2'
 
 def handle_folder(path:str) -> None:
@@ -41,9 +41,6 @@ def handle_folder(path:str) -> None:
     elif query_type == QUERY_TYPE_PING:
 
         resp = b'yes, I got your request: ' + query
-
-        # print()
-        # print(f'response to ping: {resp!r}')
 
     elif query_type == QUERY_TYPE_GIVE_ME_THE_PEERS_YOU_KNOW:
 
