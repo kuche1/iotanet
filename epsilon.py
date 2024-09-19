@@ -6,9 +6,9 @@ import os
 import shutil
 
 import util
+from util import Node
 
 from alpha import ITER_SLEEP_SEC
-from beta import Node
 from gamma import FOLDER_RESPONSES, FILENAME_PRIVATE_DATA, FILENAME_RESPONSE, send_circular, FILENAME_SENDER_ADDR
 
 def send_query(query_type:bytes, query_args:bytes, private_data:bytes, path_to_dest:list[Node], path_way_back:list[Node]) -> None:

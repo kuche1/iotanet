@@ -7,10 +7,10 @@ import shutil
 import errno
 
 import util
-from util import Symetric_key, SYMETRIC_KEY_SIZE_BYTES, SYMETRIC_KEY_IV_SIZE_BYTES
+from util import Symetric_key, SYMETRIC_KEY_SIZE_BYTES, SYMETRIC_KEY_IV_SIZE_BYTES, Node
 
 from alpha import ITER_SLEEP_SEC, create_send_entry
-from beta import Node, send_1way, generate_send_1way_header, encrypt_symetric, FOLDER_RECEIVED_UNPROCESSED, generate_symetric_key, decrypt_symetric
+from beta import send_1way, generate_send_1way_header, encrypt_symetric, FOLDER_RECEIVED_UNPROCESSED, generate_symetric_key, decrypt_symetric
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 

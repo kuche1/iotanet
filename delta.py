@@ -14,8 +14,6 @@ from gamma import FOLDER_REQUESTS, MESSAGE_TYPE_RESPONSE, SEP, FILENAME_ADDR
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 
-FOLDER_PEERS = f'{HERE}/_peers'
-
 QUERY_TYPE_GIVE_ME_YOUR_PUBLIC_KEY = b'0'
 QUERY_TYPE_PING = b'1' # TODO remove this later
 QUERY_TYPE_GIVE_ME_THE_PEERS_YOU_KNOW = b'2'
@@ -51,6 +49,7 @@ def handle_folder(path:str) -> None:
 
         assert len(query) == 0
         assert False, 'not implemented yet'
+        # TODO
 
     else:
 
@@ -63,8 +62,6 @@ def handle_folder(path:str) -> None:
     create_send_entry(addr, resp)
 
 def main() -> None:
-
-    os.makedirs(FOLDER_PEERS, exist_ok=True)
 
     while True:
 

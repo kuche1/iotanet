@@ -5,7 +5,6 @@ import argparse
 from typing import Iterator, Callable, Any
 import cryptography
 from cryptography.hazmat.primitives import serialization, hashes
-from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey, RSAPrivateKey
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding as crypto_padding
 import threading
@@ -15,7 +14,7 @@ import shutil
 from typing import cast
 
 import util
-from util import Symetric_key, SYMETRIC_KEY_SIZE_BYTES, SYMETRIC_BLOCKSIZE_BYTES, Addr
+from util import Symetric_key, SYMETRIC_KEY_SIZE_BYTES, SYMETRIC_BLOCKSIZE_BYTES, Addr, Private_key, Public_key, Node
 
 from alpha import create_send_entry
 
@@ -27,9 +26,6 @@ FOLDER_RECEIVED_UNPROCESSED_TMP = f'{FOLDER_RECEIVED_UNPROCESSED}_tmp'
 FILE_PUBLIC_KEY = f'{HERE}/_public_key'
 FILE_PRIVATE_KEY = f'{HERE}/_private_key'
 
-Private_key = RSAPrivateKey
-Public_key = RSAPublicKey
-Node = tuple[Addr,Public_key]
 Socket = socket.socket
 
 ######
@@ -97,13 +93,6 @@ def public_key_to_bytes(key:Public_key) -> bytes:
         encoding=serialization.Encoding.PEM,
         format=serialization.PublicFormat.SubjectPublicKeyInfo,
     )
-
-def bytes_to_public_key(data:bytes) -> Public_key:
-    key = serialization.load_pem_public_key(
-        data,
-    )
-
-    return cast(Public_key, key)
 
 ######
 ###### symetric encryption
@@ -318,7 +307,7 @@ if __name__ == '__main__':
 
         priv = bytes_to_private_key(priv_bytes)
 
-        pub = bytes_to_public_key(pub_bytes)
+        pub = util.bytes_to_public_key(pub_bytes)
 
         print('loaded existing keys')
 
