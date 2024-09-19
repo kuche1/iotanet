@@ -14,7 +14,7 @@ import shutil
 from typing import cast
 
 import util
-from util import Symetric_key, SYMETRIC_KEY_SIZE_BYTES, SYMETRIC_BLOCKSIZE_BYTES, Addr, Private_key, Public_key, Node
+from util import Symetric_key, SYMETRIC_KEY_SIZE_BYTES, SYMETRIC_BLOCKSIZE_BYTES, Addr, Private_key, Public_key, Node, public_key_to_bytes
 
 from alpha import create_send_entry
 
@@ -25,6 +25,7 @@ FOLDER_RECEIVED_UNPROCESSED_TMP = f'{FOLDER_RECEIVED_UNPROCESSED}_tmp'
 
 FILE_PUBLIC_KEY = f'{HERE}/_public_key'
 FILE_PRIVATE_KEY = f'{HERE}/_private_key'
+FILE_PORT = f'{HERE}/_port'
 
 Socket = socket.socket
 
@@ -87,12 +88,6 @@ def bytes_to_private_key(data:bytes) -> Private_key:
     )
 
     return cast(Private_key, key)
-
-def public_key_to_bytes(key:Public_key) -> bytes:
-    return key.public_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo,
-    )
 
 ######
 ###### symetric encryption
@@ -322,6 +317,10 @@ def main(port:int) -> None:
             fw.write(pub_bytes)
 
         print('generated new keys')
+
+    util.file_write_port(FILE_PORT, port)
+
+    print('port saved')
 
     os.makedirs(FOLDER_RECEIVED_UNPROCESSED, exist_ok=True)
     os.makedirs(FOLDER_RECEIVED_UNPROCESSED_TMP, exist_ok=True)

@@ -23,6 +23,21 @@ Symetric_key = tuple[bytes, bytes]
 Node = tuple[Addr,Public_key]
 
 ######
+###### int: serialisation
+######
+
+def file_read_int(file:str) -> int:
+    return int(file_read_str(file))
+
+def file_write_int(file:str, num:int) -> None:
+    with open(file, 'w') as f:
+        f.write(str(num))
+
+def int_to_bytes(num:int) -> bytes:
+    sep = b';'
+    return str(num).encode() + sep
+
+######
 ###### generic: serialisation
 ######
 
@@ -33,13 +48,6 @@ def file_read_bytes(file:str) -> bytes:
 def file_read_str(file:str) -> str:
     with open(file, 'r') as f:
         return f.read()
-
-def file_read_int(file:str) -> int:
-    return int(file_read_str(file))
-
-def int_to_bytes(num:int) -> bytes:
-    sep = b';'
-    return str(num).encode() + sep
 
 def chop_int(data:bytes) -> tuple[int, bytes]:
     sep = b';'
@@ -112,9 +120,32 @@ def file_write_symetric_key(file:str, key:Symetric_key) -> None:
     with open(file, 'wb') as f:
         f.write(symetric_key_to_bytes(key))
 
+def public_key_to_bytes(key:Public_key) -> bytes:
+    return key.public_bytes(
+        encoding=cryptography_serialization.Encoding.PEM,
+        format=cryptography_serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
+
 def file_read_public_key(file:str) -> Public_key:
     key_bytes = file_read_bytes(file)
     return bytes_to_public_key(key_bytes)
+
+def file_write_public_key(file:str, pub:Public_key) -> None:
+    key_bytes = public_key_to_bytes(pub)
+    with open(file, 'wb') as f:
+        f.write(key_bytes)
+
+######
+###### port: serialisation
+######
+
+def file_write_port(file:str, port:Port) -> None:
+    return file_write_int(file, port)
+
+def file_read_port(file:str) -> Port:
+    port = file_read_int(file)
+    assert port > 0
+    return port
 
 ######
 ###### addr: serialisation
@@ -124,6 +155,9 @@ def addr_to_bytes(addr:Addr) -> bytes:
     sep = b';'
     ip, port = addr
     return ip.encode() + sep + str(port).encode() + sep
+
+def addr_to_str(addr:Addr) -> str:
+    return addr_to_bytes(addr).decode()
 
 def chop_addr(data:bytes) -> tuple[Addr, bytes]:
     sep = b';'
@@ -175,45 +209,3 @@ def chop_list_of_addrs(data:bytes) -> tuple[list[Addr], bytes]:
         addr, data = chop_addr(data)
         addrs.append(addr)
     return addrs, data
-
-######
-###### peer operations + serialisation
-######
-
-# TODO allow for peers other than the default ones
-FOLDER_PEERS_DEFAULT = f'{HERE}/_peers_default'
-
-FILENAME_PEER_PUBLIC_KEY = 'public_key'
-
-def folder_read_peer(path:str) -> Node:
-
-    peer_addr_str = os.path.basename(path)
-
-    peer_addr, nothing = chop_addr_from_str(peer_addr_str)
-    assert len(nothing) == 0
-
-    peer_pub = file_read_public_key(f'{path}/{FILENAME_PEER_PUBLIC_KEY}')
-
-    return (peer_addr, peer_pub)
-
-def get_peer_folders() -> list[str]:
-    files:list[str] = []
-    for path, folders, _files in os.walk(FOLDER_PEERS_DEFAULT):
-        files = [f'{path}/{folder}' for folder in folders]
-        break
-    return files
-
-def get_peers() -> list[Node]:
-    result:list[Node] = []
-
-    for peer_folder_path in get_peer_folders():
-        result.append(folder_read_peer(peer_folder_path))
-
-    return result
-
-# TODO this should also include us
-def get_random_peer() -> Node:
-    folders = get_peer_folders()
-    folder = random.choice(folders)
-    peer = folder_read_peer(folder)
-    return peer

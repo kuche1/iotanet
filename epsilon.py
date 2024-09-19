@@ -7,10 +7,17 @@ import shutil
 import random
 
 import util
-from util import Node
+from util import Node, Addr, Public_key
 
 from alpha import ITER_SLEEP_SEC
+from beta import FILE_PUBLIC_KEY, FILE_PORT
 from gamma import FOLDER_RESPONSES, FILENAME_PRIVATE_DATA, FILENAME_RESPONSE, send_circular, FILENAME_SENDER_ADDR
+
+HERE = os.path.dirname(os.path.realpath(__file__))
+
+######
+###### send fnc
+######
 
 def send_query(query_type:bytes, query_args:bytes, private_data:bytes, dest:Node, me:Node, extra_hops:int) -> None:
 
@@ -24,7 +31,7 @@ def send_query(query_type:bytes, query_args:bytes, private_data:bytes, dest:Node
 
     path:list[Node] = []
     for _ in range(extra_hops):
-        path.append(util.get_random_peer())
+        path.append(peer_get_random_node())
 
     split_idx = random.randint(0, len(path)-1)
 
@@ -44,6 +51,10 @@ def send_query(query_type:bytes, query_args:bytes, private_data:bytes, dest:Node
     # TODO
     # for addr, _pub in path_without_me:
     #     util.peer_increase_queries_sent(addr)
+
+######
+###### process query answer
+######
 
 def handle_folder(path:str) -> None:
 
@@ -69,7 +80,74 @@ def handle_folder(path:str) -> None:
     print(f'epsilon: {path_taken=}')
     print(f'epsilon: {private_data=}')
 
+######
+###### peer-related
+######
+
+FOLDER_PEERS = f'{HERE}/_peers'
+
+PEER_FILENAME_PUBLIC_KEY = 'public_key'
+
+def peer_update(addr:Addr, pub:Public_key) -> None:
+    
+    folder_name = util.addr_to_str(addr)
+
+    peer_folder = f'{FOLDER_PEERS}/{folder_name}'
+
+    os.makedirs(peer_folder, exist_ok=True)
+
+    util.file_write_public_key(f'{peer_folder}/{PEER_FILENAME_PUBLIC_KEY}', pub)
+
+def peer_get_folders() -> list[str]:
+    files:list[str] = []
+    for path, folders, _files in os.walk(FOLDER_PEERS):
+        files = [f'{path}/{folder}' for folder in folders]
+        break
+    return files
+
+def peer_folder_read_node(path:str) -> Node:
+    peer_addr_str = os.path.basename(path)
+
+    peer_addr, nothing = util.chop_addr_from_str(peer_addr_str)
+    assert len(nothing) == 0
+
+    peer_pub = util.file_read_public_key(f'{path}/{PEER_FILENAME_PUBLIC_KEY}')
+
+    return (peer_addr, peer_pub)
+
+def peer_get_random_node() -> Node:
+    folders = peer_get_folders()
+    folder = random.choice(folders)
+    peer = peer_folder_read_node(folder)
+    return peer
+
+######
+###### main
+######
+
 def main() -> None:
+
+    os.makedirs(FOLDER_PEERS, exist_ok=True)
+
+    peer_update(
+        ('127.0.0.1', util.file_read_port(FILE_PORT)),
+        util.file_read_public_key(FILE_PUBLIC_KEY),
+    )
+    # TODO stupid
+
+    # TODO ok for testing but should be removed later on
+    peer_update(
+        ('127.0.0.1', 6970),
+        util.file_read_public_key('/var/tmp/iotanet-testing/default-peer-0/_public_key'),
+    )
+    peer_update(
+        ('127.0.0.1', 6971),
+        util.file_read_public_key('/var/tmp/iotanet-testing/default-peer-1/_public_key'),
+    )
+    peer_update(
+        ('127.0.0.1', 6972),
+        util.file_read_public_key('/var/tmp/iotanet-testing/default-peer-2/_public_key'),
+    )
 
     while True:
 

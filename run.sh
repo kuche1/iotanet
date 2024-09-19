@@ -31,6 +31,7 @@
 
     ./alpha.py &
     ./beta.py $port &
+    sleep 0.1
     ./gamma.py &
     ./delta.py &
     ./epsilon.py &

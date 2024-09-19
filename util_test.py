@@ -2,6 +2,6 @@
 
 import util
 
-for node in util.get_peers():
-    print()
-    print(node)
+# for node in util.get_peers():
+#     print()
+#     print(node)
