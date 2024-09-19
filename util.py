@@ -37,17 +37,6 @@ def file_read_str(file:str) -> str:
 def file_read_int(file:str) -> int:
     return int(file_read_str(file))
 
-def file_read_int_positive_or_0(file:str) -> int:
-    num = file_read_int(file)
-    assert num >= 0
-    return num
-
-# TODO delete
-def file_read_int_positive(file:str) -> int:
-    num = file_read_int(file)
-    assert num > 0
-    return num
-
 def int_to_bytes(num:int) -> bytes:
     sep = b';'
     return str(num).encode() + sep
@@ -136,7 +125,6 @@ def addr_to_bytes(addr:Addr) -> bytes:
     ip, port = addr
     return ip.encode() + sep + str(port).encode() + sep
 
-# TODO rename tp `chop_addr_from_bytes`
 def chop_addr(data:bytes) -> tuple[Addr, bytes]:
     sep = b';'
 
