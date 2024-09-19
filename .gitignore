@@ -3,6 +3,4 @@ _public_key
 _private_key
 _identificator_key
 
-_peers/
-
 __pycache__/
