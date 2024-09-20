@@ -1,8 +1,5 @@
 #! /usr/bin/env python3
 
-# TODO there should be another "peer" file that deals with sending, and counting statistics, and another that deals with receiving,
-# and another that deals with asking for other peers, and so on
-
 import argparse
 import os
 import random
