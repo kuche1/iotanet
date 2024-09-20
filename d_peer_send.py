@@ -201,6 +201,6 @@ def main() -> None:
             break
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser('daemon: peer managament')
+    parser = argparse.ArgumentParser('daemon: peer send')
     args = parser.parse_args()
     main()

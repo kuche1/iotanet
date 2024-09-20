@@ -11,7 +11,7 @@ from util import Node, Addr
 
 from a_send_1way import ITER_SLEEP_SEC
 from c_circular import FOLDER_RESPONSES, FILENAME_PRIVATE_DATA, FILENAME_RESPONSE, FILENAME_RESPONDER_ADDR
-from d_peer import peer_increase_queries_answered, send_measure
+from d_peer_send import peer_increase_queries_answered, send_measure
 
 ######
 ###### send query
