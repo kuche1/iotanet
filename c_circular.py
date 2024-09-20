@@ -46,14 +46,17 @@ def chop_until_next_sep(payload:bytes) -> tuple[str, bytes, bytes]:
 
 def send_circular(query:bytes, private_data:bytes, path_to_dest:list[Node], path_way_back:list[Node]) -> None:
 
+    print(f'{query=}')
+
     dest_addr, _dest_pub = path_to_dest[-1]
     private_data = util.addr_to_bytes(dest_addr) + private_data
 
     addr_back, header_back, response_sym_key = generate_send_1way_header(path_way_back)
 
-    identificator_sym_key, identificator_sym_iv = util.file_read_symetric_key(FILE_IDENTIFICATOR_KEY)
-
-    query_identificator = encrypt_symetric(private_data, (identificator_sym_key, identificator_sym_iv))
+    private_data = encrypt_symetric(
+        private_data,
+        util.file_read_symetric_key(FILE_IDENTIFICATOR_KEY)
+    )
 
     payload = \
         MESSAGE_TYPE_REQUEST + \
@@ -61,8 +64,8 @@ def send_circular(query:bytes, private_data:bytes, path_to_dest:list[Node], path
         query + \
         util.symetric_key_to_bytes(response_sym_key) + \
         util.addr_to_bytes(addr_back) + \
-        str(len(query_identificator)).encode() + SEP + \
-        query_identificator + \
+        str(len(private_data)).encode() + SEP + \
+        private_data + \
         header_back
 
     send_1way(payload, path_to_dest)

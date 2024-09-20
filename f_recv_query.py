@@ -6,10 +6,12 @@ import os
 from typing import Callable
 
 import util
+from util import echo as print
 
 from a_send_1way import ITER_SLEEP_SEC, create_send_entry
 from b_recv_1way import encrypt_symetric, FILE_PUBLIC_KEY
 from c_circular import FOLDER_REQUESTS, MESSAGE_TYPE_RESPONSE, SEP, FILENAME_ADDR
+from d_peer_send import peer_all_nodes_to_bytes
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 
@@ -17,7 +19,7 @@ QUERY_TYPE_GIVE_ME_YOUR_PUBLIC_KEY = b'0'
 QUERY_TYPE_PING = b'1' # we could remove this one
 QUERY_TYPE_GIVE_ME_THE_PEERS_YOU_KNOW = b'2'
 
-def handle_folder(path:str) -> None:
+def handle_request_folder(path:str) -> None:
 
     query = util.file_read_bytes(f'{path}/query')
     sym_key = util.file_read_symetric_key(f'{path}/sym_key')
@@ -42,10 +44,10 @@ def handle_folder(path:str) -> None:
         resp = b'yes, I got your request: ' + query
 
     elif query_type == QUERY_TYPE_GIVE_ME_THE_PEERS_YOU_KNOW:
+        # TODO untested
 
         assert len(query) == 0
-        assert False, 'not implemented yet'
-        # TODO
+        resp = peer_all_nodes_to_bytes()
 
     else:
 
@@ -70,7 +72,7 @@ def main() -> None:
                 path = f'{FOLDER_REQUESTS}/{request_folder}'
 
                 util.try_finally(
-                    lambda: handle_folder(path),
+                    lambda: handle_request_folder(path),
                     lambda: util.rmtree(path),
                 )
 

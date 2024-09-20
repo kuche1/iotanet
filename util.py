@@ -56,6 +56,42 @@ def copy(src:str, dst:str) -> None:
     move(tmp, dst)
 
 ######
+###### conversion of things to bytes
+###### 
+# NOTE: all of these are supposed to be "choppable", so information about the length or a separator is included if unknown
+
+def int_to_bytes(num:int) -> bytes:
+    sep = b';'
+    return str(num).encode() + sep
+
+# no need to include len info here, since it's fixed
+def symetric_key_to_bytes(key:Symetric_key) -> bytes:
+    k, i = key
+    return k + i
+
+# length is fixed
+# TODO length really is fixed but is fucky and hard to calculate
+# so we better update this fnc to also specify the length and update all
+# pieces of code that rely on it
+def public_key_to_bytes(key:Public_key) -> bytes:
+    return key.public_bytes(
+        encoding=cryptography_serialization.Encoding.PEM,
+        format=cryptography_serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
+
+def addr_to_bytes(addr:Addr) -> bytes:
+    sep = b';'
+    ip, port = addr
+    return ip.encode() + sep + str(port).encode() + sep
+
+def list_of_nodes_to_bytes_of_node_addrs(nodes:list[Node]) -> bytes:
+    data = b''
+    data += int_to_bytes(len(nodes))
+    for addr, _pub in nodes:
+        data += addr_to_bytes(addr)
+    return data
+
+######
 ###### serialisation: bytes
 ######
 
@@ -91,10 +127,6 @@ def file_read_int(file:str) -> int:
 def file_write_int(file:str, num:int) -> None:
     return file_write_str(file, str(num))
 
-def int_to_bytes(num:int) -> bytes:
-    sep = b';'
-    return str(num).encode() + sep
-
 def file_increase(file:str) -> None:
     num = file_read_int(file)
     file_write_int(file, num + 1)
@@ -126,10 +158,6 @@ def try_finally(fnc:Callable[[],None], cleanup:Callable[[],None]) -> None:
 ######
 ###### serialisation: key
 ######
-
-def symetric_key_to_bytes(key:Symetric_key) -> bytes:
-    k, i = key
-    return k + i
 
 def chop_symetric_key(data:bytes) -> tuple[Symetric_key, bytes]:
 
@@ -169,12 +197,6 @@ def file_write_symetric_key(file:str, key:Symetric_key) -> None:
     data = symetric_key_to_bytes(key)
     file_write_bytes(file, data)
 
-def public_key_to_bytes(key:Public_key) -> bytes:
-    return key.public_bytes(
-        encoding=cryptography_serialization.Encoding.PEM,
-        format=cryptography_serialization.PublicFormat.SubjectPublicKeyInfo,
-    )
-
 def file_read_public_key(file:str) -> Public_key:
     key_bytes = file_read_bytes(file)
     return bytes_to_public_key(key_bytes)
@@ -198,11 +220,6 @@ def file_read_port(file:str) -> Port:
 ######
 ###### serialisation: addr
 ######
-
-def addr_to_bytes(addr:Addr) -> bytes:
-    sep = b';'
-    ip, port = addr
-    return ip.encode() + sep + str(port).encode() + sep
 
 def addr_to_str(addr:Addr) -> str:
     return addr_to_bytes(addr).decode()
@@ -242,13 +259,6 @@ def file_read_addr(file:str) -> Addr:
     assert len(data) == 0
 
     return addr
-
-def list_of_nodes_to_bytes_of_node_addrs(nodes:list[Node]) -> bytes:
-    data = b''
-    data += int_to_bytes(len(nodes))
-    for addr, _pub in nodes:
-        data += addr_to_bytes(addr)
-    return data
 
 def chop_list_of_addrs(data:bytes) -> tuple[list[Addr], bytes]:
     addrs:list[Addr] = []

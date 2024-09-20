@@ -24,7 +24,7 @@ PEER_FILENAME_QUERIES_SENT = 'queries_sent'
 PEER_FILENAME_QUERIES_ANSWERED = 'queries_answered'
 
 SEND_MEASURE_FILENAME_QUERY = 'query'
-SEND_MEASURE_FILENAME_PRIVATE_DATA = 'query'
+SEND_MEASURE_FILENAME_PRIVATE_DATA = 'private_data'
 SEND_MEASURE_FILENAME_DEST = 'dest_addr'
 SEND_MEASURE_FILENAME_EXTRA_HOPS = 'extra_hops'
 
@@ -97,12 +97,17 @@ def peer_increase_queries_answered(addr:Addr) -> None:
 
 ### FS
 
-def peer_get_node_and_reliability() -> list[tuple[Node, int, int]]:
-
+def peer_get_node_folders() -> list[str]:
     folders:list[str] = []
     for path, folders, _files in os.walk(FOLDER_PEERS):
         folders = [f'{path}/{folder}' for folder in folders]
         break
+    return folders
+
+# TODO rename to get_nodeS_and_reliabilitIES
+def peer_get_node_and_reliability() -> list[tuple[Node, int, int]]:
+
+    folders = peer_get_node_folders()
     
     ret = []
 
@@ -122,6 +127,26 @@ def peer_get_node_and_reliability() -> list[tuple[Node, int, int]]:
         queries_answered = util.file_read_int(f'{folder_path}/{PEER_FILENAME_QUERIES_ANSWERED}')
 
         ret.append((node, queries_answered, queries_sent))
+    
+    return ret
+
+def peer_all_nodes_to_bytes() -> bytes:
+
+    all_peer_folders = peer_get_node_folders()
+
+    ret = util.int_to_bytes(len(all_peer_folders))
+
+    for peer_folder in all_peer_folders:
+
+        addr_str = os.path.basename(peer_folder)
+
+        addr, nothing = util.chop_addr_from_str(addr_str)
+        assert len(nothing) == 0
+
+        pub = util.file_read_public_key(f'{peer_folder}/{PEER_FILENAME_PUBLIC_KEY}')
+
+        ret += util.addr_to_bytes(addr)
+        ret += util.public_key_to_bytes(pub)
     
     return ret
 

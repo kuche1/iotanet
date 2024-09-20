@@ -226,6 +226,7 @@ def handle_msg(payload:bytes, private_key:Private_key, connection_time:float) ->
 ###### send
 ######
 
+# returns: (the address of the next hop), (the data for the next hop), (the key that is used to encrypt the data ment for the receiver)
 def generate_send_1way_header(path:list[Node]) -> tuple[Addr, bytes, Symetric_key]:
 
     assert len(path) >= 0

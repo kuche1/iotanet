@@ -26,9 +26,14 @@ from g_send_process_query import send_query
 
 pub = util.file_read_public_key(FILE_PUBLIC_KEY)
 
-query_type = QUERY_TYPE_PING
+# query_type = QUERY_TYPE_GIVE_ME_YOUR_PUBLIC_KEY
+# query_args = b''
 
-query_args = b'gacergcaregr'
+# query_type = QUERY_TYPE_PING
+# query_args = b'gacergcaregr'
+
+query_type = QUERY_TYPE_GIVE_ME_THE_PEERS_YOU_KNOW
+query_args = b''
 
 private_data = b'12345'
 
