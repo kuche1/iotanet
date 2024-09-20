@@ -72,7 +72,8 @@ def symetric_key_to_bytes(key:Symetric_key) -> bytes:
 # length is fixed
 # TODO length really is fixed but is fucky and hard to calculate
 # so we better update this fnc to also specify the length and update all
-# pieces of code that rely on it
+# pieces of code that rely on it, if we don't do this the code for sending the
+# known peers is not going to work
 def public_key_to_bytes(key:Public_key) -> bytes:
     return key.public_bytes(
         encoding=cryptography_serialization.Encoding.PEM,
