@@ -89,6 +89,9 @@ def peer_increase_queries_sent(addr:Addr) -> None:
     file = f'{peer_folder}/{PEER_FILENAME_QUERIES_SENT}'
     util.file_increase(file)
 
+# TODO what is the query itself is invalid?
+# should we really expect the server to return an answer
+# regardless?
 def peer_increase_queries_answered(addr:Addr) -> None:
     peer_folder = peer_get_folder_by_addr(addr)
 

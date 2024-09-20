@@ -56,6 +56,27 @@ def copy(src:str, dst:str) -> None:
     move(tmp, dst)
 
 ######
+###### conversion of things to rawbytes
+###### 
+# NOTE:
+# for when they are going to be used by themselves
+# for example, a conversion of an int would just be
+# str(123).encode(), so no len info, so it must not
+# be concatinated with other data
+
+def public_key_to_rawbytes(key:Public_key) -> bytes:
+    return key.public_bytes(
+        encoding=cryptography_serialization.Encoding.PEM,
+        format=cryptography_serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
+
+def rawbytes_to_public_key(data:bytes) -> Public_key:
+    key = cryptography_serialization.load_pem_public_key(
+        data,
+    )
+    return cast(Public_key, key)
+
+######
 ###### conversion of things to bytes
 ###### 
 # NOTE: all of these are supposed to be "choppable", so information about the length or a separator is included if unknown
@@ -69,16 +90,10 @@ def symetric_key_to_bytes(key:Symetric_key) -> bytes:
     k, i = key
     return k + i
 
-# length is fixed
-# TODO length really is fixed but is fucky and hard to calculate
-# so we better update this fnc to also specify the length and update all
-# pieces of code that rely on it, if we don't do this the code for sending the
-# known peers is not going to work
 def public_key_to_bytes(key:Public_key) -> bytes:
-    return key.public_bytes(
-        encoding=cryptography_serialization.Encoding.PEM,
-        format=cryptography_serialization.PublicFormat.SubjectPublicKeyInfo,
-    )
+    data = public_key_to_rawbytes(key)
+
+    return int_to_bytes(len(data)) + data
 
 def addr_to_bytes(addr:Addr) -> bytes:
     sep = b';'
@@ -172,12 +187,6 @@ def chop_symetric_key(data:bytes) -> tuple[Symetric_key, bytes]:
 
     return (sym_key, sym_iv), data
 
-def bytes_to_public_key(data:bytes) -> Public_key:
-    key = cryptography_serialization.load_pem_public_key(
-        data,
-    )
-    return cast(Public_key, key)
-
 def file_read_symetric_key(file:str) -> Symetric_key:
 
     data = file_read_bytes(file)
@@ -200,10 +209,10 @@ def file_write_symetric_key(file:str, key:Symetric_key) -> None:
 
 def file_read_public_key(file:str) -> Public_key:
     key_bytes = file_read_bytes(file)
-    return bytes_to_public_key(key_bytes)
+    return rawbytes_to_public_key(key_bytes)
 
 def file_write_public_key(file:str, pub:Public_key) -> None:
-    data = public_key_to_bytes(pub)
+    data = public_key_to_rawbytes(pub)
     file_write_bytes(file, data)
 
 ######

@@ -14,7 +14,7 @@ from typing import cast
 
 import util
 from util import echo as print
-from util import Symetric_key, SYMETRIC_KEY_SIZE_BYTES, SYMETRIC_BLOCKSIZE_BYTES, Addr, Private_key, Public_key, Node, public_key_to_bytes
+from util import Symetric_key, SYMETRIC_KEY_SIZE_BYTES, SYMETRIC_BLOCKSIZE_BYTES, Addr, Private_key, Public_key, Node, public_key_to_rawbytes
 
 from a_send_1way import create_send_entry
 
@@ -299,7 +299,7 @@ def main(port:int) -> None:
 
         priv = bytes_to_private_key(priv_bytes)
 
-        pub = util.bytes_to_public_key(pub_bytes)
+        pub = util.rawbytes_to_public_key(pub_bytes)
 
         print('loaded existing keys')
 
@@ -309,7 +309,7 @@ def main(port:int) -> None:
 
         priv_bytes = private_key_to_bytes(priv)
 
-        pub_bytes = public_key_to_bytes(pub)
+        pub_bytes = public_key_to_rawbytes(pub)
 
         with open(FILE_PRIVATE_KEY, 'wb') as fw:
             fw.write(priv_bytes)
