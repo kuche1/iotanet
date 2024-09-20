@@ -22,12 +22,10 @@
         a_send_1way.py \
         b_recv_1way.py \
         c_circular.py \
-        c_circular_test.py \
         d_peer_send.py \
-        e_recv_query.py \
-        e_recv_query_test.py \
-        f_send_process_query.py \
-        f_send_process_query_test.py
+        f_recv_query.py \
+        g_send_process_query.py \
+        g_send_process_query_test.py
 
     ./util.py
     ./a_send_1way.py &
@@ -35,8 +33,8 @@
     sleep 0.1
     ./c_circular.py &
     ./d_peer_send.py &
-    ./e_recv_query.py &
-    ./f_send_process_query.py &
+    ./f_recv_query.py &
+    ./g_send_process_query.py &
 
     echo '~~{{(( all started ))}}~~'
 
