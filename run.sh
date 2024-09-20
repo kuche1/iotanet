@@ -23,17 +23,19 @@
         b_recv_1way.py \
         c_circular.py \
         c_circular_test.py \
-        d_recv_query.py \
-        d_recv_query_test.py \
-        e_send_process_query.py \
-        e_send_process_query_test.py
+        d_peer.py \
+        e_recv_query.py \
+        e_recv_query_test.py \
+        f_send_process_query.py \
+        f_send_process_query_test.py
 
     ./a_send_1way.py &
     ./b_recv_1way.py $port &
     sleep 0.1
     ./c_circular.py &
-    ./d_recv_query.py &
-    ./e_send_process_query.py &
+    ./d_peer.py &
+    ./e_recv_query.py &
+    ./f_send_process_query.py &
 
     echo '~~{{(( all started ))}}~~'
 
