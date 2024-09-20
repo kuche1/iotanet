@@ -25,15 +25,15 @@
         c_circular_test.py \
         d_recv_query.py \
         d_recv_query_test.py \
-        epsilon.py \
-        epsilon_test.py
+        e_send_process_query.py \
+        e_send_process_query_test.py
 
     ./a_send_1way.py &
     ./b_recv_1way.py $port &
     sleep 0.1
     ./c_circular.py &
     ./d_recv_query.py &
-    ./epsilon.py &
+    ./e_send_process_query.py &
 
     echo '~~{{(( all started ))}}~~'
 

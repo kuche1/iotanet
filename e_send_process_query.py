@@ -7,6 +7,7 @@ import shutil
 import random
 
 import util
+from util import echo as print
 from util import Node, Addr, Public_key
 
 from a_send_1way import ITER_SLEEP_SEC
@@ -69,12 +70,12 @@ def handle_folder(path:str) -> None:
     for addr in path_taken:
         peer_increase_queries_answered(addr)
 
-    print('epsilon:')
-    print(f'epsilon: {sender_addr=}')
-    print(f'epsilon: {query_type=}')
-    print(f'epsilon: {response=}')
-    print(f'epsilon: {path_taken=}')
-    print(f'epsilon: {private_data=}')
+    print()
+    print(f'{sender_addr=}')
+    print(f'{query_type=}')
+    print(f'{response=}')
+    print(f'{path_taken=}')
+    print(f'{private_data=}')
 
 ######
 ###### peer-related
