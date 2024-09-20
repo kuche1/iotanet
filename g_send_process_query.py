@@ -10,8 +10,9 @@ from util import echo as print
 from util import Node, Addr
 
 from a_send_1way import ITER_SLEEP_SEC
-from c_circular import FOLDER_RESPONSES, FILENAME_PRIVATE_DATA, FILENAME_RESPONSE, FILENAME_RESPONDER_ADDR
+from c_circular import FILENAME_PRIVATE_DATA, FILENAME_RESPONSE, FILENAME_RESPONDER_ADDR
 from d_peer_send import peer_increase_queries_answered, send_measure
+from e_peer_recv import FOLDER_RECEIVED_MEASURED
 
 ######
 ###### send query
@@ -38,20 +39,13 @@ def handle_folder(path:str) -> None:
 
     assert len(private_data) > 0
 
-    # TODO this shouldn't be happening here (1 it should be in a "peer" folder ) (2 it should be in it's own thread, so that there is no change the multiple processess call in thecrease_queries function at the same time)
-    path_taken, private_data = util.chop_list_of_addrs(private_data)
-
     query_type = private_data[0:1]
     private_data = private_data[1:]
-
-    for addr in path_taken:
-        peer_increase_queries_answered(addr)
 
     print()
     print(f'{responder_addr=}')
     print(f'{query_type=}')
     print(f'{response=}')
-    print(f'{path_taken=}')
     print(f'{private_data=}')
 
 ######
@@ -64,11 +58,11 @@ def main() -> None:
 
         time.sleep(ITER_SLEEP_SEC)
 
-        for _path, response_folders, _files in os.walk(FOLDER_RESPONSES):
+        for response_folder_path, response_folders, _files in os.walk(FOLDER_RECEIVED_MEASURED):
 
             for response_folder in response_folders:
 
-                path = f'{FOLDER_RESPONSES}/{response_folder}'
+                path = f'{response_folder_path}/{response_folder}'
 
                 util.try_finally(
                     lambda: handle_folder(path),

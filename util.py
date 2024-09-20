@@ -42,8 +42,11 @@ Node = tuple[Addr,Public_key]
 ###### atomic operation enablers
 ######
 
+def gen_rnd_filename() -> str:
+    return f'{time.time()}_{random.random()}'
+
 def gen_tmp_file_path() -> str:
-    return f'{FOLDER_TMP}/{time.time()}_{random.random()}'
+    return f'{FOLDER_TMP}/{gen_rnd_filename()}'
 
 def move(src:str, dst:str) -> None:
     shutil.move(src, dst)
@@ -52,6 +55,11 @@ def rmtree(path:str) -> None:
     tmp = gen_tmp_file_path()
     move(path, tmp)
     shutil.rmtree(tmp)
+
+def copy(src:str, dst:str) -> None:
+    tmp = gen_tmp_file_path()
+    shutil.copy(src, tmp)
+    move(tmp, dst)
 
 ######
 ###### serialisation: bytes

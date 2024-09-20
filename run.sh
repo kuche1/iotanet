@@ -23,6 +23,7 @@
         b_recv_1way.py \
         c_circular.py \
         d_peer_send.py \
+        e_peer_recv.py \
         f_recv_query.py \
         g_send_process_query.py \
         g_send_process_query_test.py
@@ -33,6 +34,7 @@
     sleep 0.1
     ./c_circular.py &
     ./d_peer_send.py &
+    ./e_peer_recv.py &
     ./f_recv_query.py &
     ./g_send_process_query.py &
 
