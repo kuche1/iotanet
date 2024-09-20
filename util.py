@@ -213,6 +213,10 @@ def file_read_addr(file:str) -> Addr:
 
     return addr
 
+def file_write_bytes(file:str, data:bytes) -> None:
+    with open(file, 'wb') as f:
+        f.write(data)
+
 def list_of_nodes_to_bytes_of_node_addrs(nodes:list[Node]) -> bytes:
     data = b''
     data += int_to_bytes(len(nodes))

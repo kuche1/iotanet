@@ -7,6 +7,7 @@ import argparse
 import os
 import random
 import time
+import shutil
 
 import util
 from util import echo as print
@@ -19,20 +20,47 @@ from c_circular import send_circular
 HERE = os.path.dirname(os.path.realpath(__file__))
 
 FOLDER_PEERS = f'{HERE}/_peers'
+FOLDER_SEND_MEASURE = f'{HERE}/_send_measure'
+FOLDER_SEND_MEASURE_TMP = f'{FOLDER_SEND_MEASURE}_tmp' # TODO
 
 PEER_FILENAME_PUBLIC_KEY = 'public_key'
 PEER_FILENAME_QUERIES_SENT = 'queries_sent'
 PEER_FILENAME_QUERIES_ANSWERED = 'queries_answered'
 
-### message sending
+SEND_MEASURE_FILENAME_QUERY = 'query'
+SEND_MEASURE_FILENAME_PRIVATE_DATA = 'query'
+SEND_MEASURE_FILENAME_DEST = 'dest_addr'
+SEND_MEASURE_FILENAME_EXTRA_HOPS = 'extra_hops'
 
-# TODO this should create a folder instead
-def send_measure(query:bytes, private_data:bytes, dest:Node, me:Node, extra_hops:int) -> None:
+### create entry for sending a message
+
+def send_measure(query:bytes, private_data:bytes, dest_addr:Addr, extra_hops:int) -> None:
+    root = f'{FOLDER_SEND_MEASURE_TMP}/{time.time()}_{random.random()}'
+    save_loc = f'{FOLDER_SEND_MEASURE}/{time.time()}_{random.random()}'
+
+    os.mkdir(root)
+
+    util.file_write_bytes(f'{root}/{SEND_MEASURE_FILENAME_QUERY}', query)
+    util.file_write_bytes(f'{root}/{SEND_MEASURE_FILENAME_PRIVATE_DATA}', private_data)
+    util.file_write_addr(f'{root}/{SEND_MEASURE_FILENAME_DEST}', dest_addr)
+    util.file_write_int(f'{root}/{SEND_MEASURE_FILENAME_EXTRA_HOPS}', extra_hops)
+
+    shutil.move(root, save_loc)
+
+### deal with entry for sending a message
+
+def handle_folder(root:str) -> None:
+    query = util.file_read_bytes(f'{root}/{SEND_MEASURE_FILENAME_QUERY}')
+    private_data = util.file_read_bytes(f'{root}/{SEND_MEASURE_FILENAME_PRIVATE_DATA}')
+    dest_addr = util.file_read_addr(f'{root}/{SEND_MEASURE_FILENAME_DEST}')
+    extra_hops = util.file_read_int(f'{root}/{SEND_MEASURE_FILENAME_EXTRA_HOPS}')
+
+    dest = peer_addr_to_node(dest_addr)
 
     path:list[Node] = peer_get_random_nodes_based_on_reliability(extra_hops)
     split_idx = random.randint(0, len(path)-1)
     path_to_dest = path[:split_idx] + [dest]
-    path_way_back = path[split_idx:] + [me]
+    path_way_back = path[split_idx:] + [peer_me()]
 
     path_without_me = path_to_dest + path_way_back[:-1]
     private_data = util.list_of_nodes_to_bytes_of_node_addrs(path_without_me) + private_data
@@ -45,8 +73,7 @@ def send_measure(query:bytes, private_data:bytes, dest:Node, me:Node, extra_hops
 ### creation / update
 
 def peer_create_or_update(addr:Addr, pub:Public_key) -> None:
-    folder_name = util.addr_to_str(addr)
-    peer_folder = f'{FOLDER_PEERS}/{folder_name}'
+    peer_folder = peer_get_folder_by_addr(addr)
 
     os.makedirs(peer_folder, exist_ok=True)
 
@@ -62,15 +89,12 @@ def peer_create_or_update(addr:Addr, pub:Public_key) -> None:
         util.file_write_int(file_queries_answered, 0)
 
 def peer_increase_queries_sent(addr:Addr) -> None:
-    folder_name = util.addr_to_str(addr)
-    peer_folder = f'{FOLDER_PEERS}/{folder_name}'
-
+    peer_folder = peer_get_folder_by_addr(addr)
     file = f'{peer_folder}/{PEER_FILENAME_QUERIES_SENT}'
     util.file_increase(file)
 
 def peer_increase_queries_answered(addr:Addr) -> None:
-    folder_name = util.addr_to_str(addr)
-    peer_folder = f'{FOLDER_PEERS}/{folder_name}'
+    peer_folder = peer_get_folder_by_addr(addr)
 
     file = f'{peer_folder}/{PEER_FILENAME_QUERIES_ANSWERED}'
     util.file_increase(file)
@@ -105,6 +129,19 @@ def peer_get_node_and_reliability() -> list[tuple[Node, int, int]]:
     
     return ret
 
+def peer_addr_to_node(addr:Addr) -> Node:
+    peer_folder = peer_get_folder_by_addr(addr)
+
+    file_pub = f'{peer_folder}/{PEER_FILENAME_PUBLIC_KEY}'
+    pub = util.file_read_public_key(file_pub)
+    return addr, pub
+
+def peer_me() -> Node:
+    # TODO wrong address
+    pub = util.file_read_public_key(FILE_PUBLIC_KEY)
+    port = util.file_read_port(FILE_PORT)
+    return ('127.0.0.1', port), pub
+
 ### util
 
 # TODO keep in mind that your (real) reliability is going
@@ -132,11 +169,18 @@ def peer_get_random_nodes_based_on_reliability(num:int) -> list[Node]:
 
     return ret
 
+def peer_get_folder_by_addr(addr:Addr) -> str:
+    folder_name = util.addr_to_str(addr)
+    peer_folder = f'{FOLDER_PEERS}/{folder_name}'
+    return peer_folder
+
 ### main
 
 def main() -> None:
 
     os.makedirs(FOLDER_PEERS, exist_ok=True)
+    os.makedirs(FOLDER_SEND_MEASURE, exist_ok=True)
+    os.makedirs(FOLDER_SEND_MEASURE_TMP, exist_ok=True)
 
     # TODO stupid, find another way to add yourself, or at least do not use the local ip
     peer_create_or_update(
@@ -150,6 +194,15 @@ def main() -> None:
     while True:
 
         time.sleep(ITER_SLEEP_SEC)
+
+        for folders_path, folders, _files in os.walk(FOLDER_SEND_MEASURE):
+            for folder in folders:
+                path = f'{folders_path}/{folder}'
+                util.try_finally(
+                    lambda: handle_folder(path),
+                    lambda: shutil.rmtree(path),
+                )
+            break
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('daemon: peer managament')

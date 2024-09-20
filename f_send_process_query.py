@@ -8,7 +8,7 @@ import random
 
 import util
 from util import echo as print
-from util import Node
+from util import Node, Addr
 
 from a_send_1way import ITER_SLEEP_SEC
 from c_circular import FOLDER_RESPONSES, FILENAME_PRIVATE_DATA, FILENAME_RESPONSE, FILENAME_RESPONDER_ADDR
@@ -18,14 +18,14 @@ from d_peer import peer_increase_queries_answered, send_measure
 ###### send query
 ######
 
-def send_query(query_type:bytes, query_args:bytes, private_data:bytes, dest:Node, me:Node, extra_hops:int) -> None:
+def send_query(query_type:bytes, query_args:bytes, private_data:bytes, dest_addr:Addr, extra_hops:int) -> None:
 
     assert len(query_type) == 1
     query = query_type + query_args
 
     private_data = query_type + private_data
 
-    send_measure(query, private_data, dest, me, extra_hops)
+    send_measure(query, private_data, dest_addr, extra_hops)
 
 ######
 ###### process query answer

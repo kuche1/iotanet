@@ -32,10 +32,8 @@ query_args = b'gacergcaregr'
 
 private_data = b'12345'
 
-me = (('127.0.0.1', 6969), pub)
-
-dest = me
+dest_addr = ('127.0.0.1', 6969)
 
 extra_hops = 4
 
-send_query(query_type, query_args, private_data, dest, me, extra_hops)
+send_query(query_type, query_args, private_data, dest_addr, extra_hops)
