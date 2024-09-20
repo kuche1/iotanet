@@ -23,7 +23,7 @@ FOLDER_RESPONSES_TMP = f'{FOLDER_RESPONSES}_tmp'
 
 FILE_IDENTIFICATOR_KEY = f'{HERE}/_identificator_key'
 
-FILENAME_SENDER_ADDR = 'sender_addr'
+FILENAME_RESPONDER_ADDR = 'responder_addr'
 FILENAME_PRIVATE_DATA = 'private_data'
 FILENAME_RESPONSE = 'response'
 FILENAME_ADDR = 'addr'
@@ -164,7 +164,7 @@ def handle_file(path:str, message_file:str) -> None:
             util.file_read_symetric_key(FILE_IDENTIFICATOR_KEY)
         )
 
-        sender_addr, private_data = util.chop_addr(private_data)
+        responder_addr, private_data = util.chop_addr(private_data)
 
         query_response = payload
         
@@ -176,7 +176,7 @@ def handle_file(path:str, message_file:str) -> None:
 
         os.mkdir(root_tmp)
 
-        util.file_write_addr(f'{root_tmp}/{FILENAME_SENDER_ADDR}', sender_addr)
+        util.file_write_addr(f'{root_tmp}/{FILENAME_RESPONDER_ADDR}', responder_addr)
 
         with open(f'{root_tmp}/{FILENAME_PRIVATE_DATA}', 'wb') as f:
             f.write(private_data)

@@ -14,6 +14,7 @@ from util import Addr, Public_key, Node
 
 from a_send_1way import ITER_SLEEP_SEC
 from b_recv_1way import FILE_PUBLIC_KEY, FILE_PORT
+from c_circular import send_circular
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 
@@ -22,6 +23,24 @@ FOLDER_PEERS = f'{HERE}/_peers'
 PEER_FILENAME_PUBLIC_KEY = 'public_key'
 PEER_FILENAME_QUERIES_SENT = 'queries_sent'
 PEER_FILENAME_QUERIES_ANSWERED = 'queries_answered'
+
+### message sending
+
+# TODO this should create a folder instead
+def send_measure(query:bytes, private_data:bytes, dest:Node, me:Node, extra_hops:int) -> None:
+
+    path:list[Node] = peer_get_random_nodes_based_on_reliability(extra_hops)
+    split_idx = random.randint(0, len(path)-1)
+    path_to_dest = path[:split_idx] + [dest]
+    path_way_back = path[split_idx:] + [me]
+
+    path_without_me = path_to_dest + path_way_back[:-1]
+    private_data = util.list_of_nodes_to_bytes_of_node_addrs(path_without_me) + private_data
+
+    send_circular(query, private_data, path_to_dest, path_way_back)
+
+    for addr, _pub in path_without_me:
+        peer_increase_queries_sent(addr)
 
 ### creation / update
 
