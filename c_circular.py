@@ -46,8 +46,6 @@ def chop_until_next_sep(payload:bytes) -> tuple[str, bytes, bytes]:
 
 def send_circular(query:bytes, private_data:bytes, path_to_dest:list[Node], path_way_back:list[Node]) -> None:
 
-    print(f'{query=}')
-
     dest_addr, _dest_pub = path_to_dest[-1]
     private_data = util.addr_to_bytes(dest_addr) + private_data
 
