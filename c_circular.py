@@ -3,7 +3,6 @@
 import time
 import os
 import argparse
-import shutil
 import errno
 
 import util

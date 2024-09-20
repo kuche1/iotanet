@@ -48,6 +48,11 @@ def gen_tmp_file_path() -> str:
 def move(src:str, dst:str) -> None:
     shutil.move(src, dst)
 
+def rmtree(path:str) -> None:
+    tmp = gen_tmp_file_path()
+    move(path, tmp)
+    shutil.rmtree(tmp)
+
 ######
 ###### serialisation: bytes
 ######

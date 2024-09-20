@@ -7,7 +7,6 @@ import argparse
 import os
 import random
 import time
-import shutil
 
 import util
 from util import echo as print
@@ -197,7 +196,7 @@ def main() -> None:
                 path = f'{folders_path}/{folder}'
                 util.try_finally(
                     lambda: handle_folder(path),
-                    lambda: shutil.rmtree(path),
+                    lambda: util.rmtree(path),
                 )
             break
 

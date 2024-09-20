@@ -3,7 +3,6 @@
 import time
 import argparse
 import os
-import shutil
 from typing import Callable
 
 import util
@@ -72,7 +71,7 @@ def main() -> None:
 
                 util.try_finally(
                     lambda: handle_folder(path),
-                    lambda: shutil.rmtree(path),
+                    lambda: util.rmtree(path),
                 )
 
             break

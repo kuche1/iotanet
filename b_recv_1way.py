@@ -10,7 +10,6 @@ from cryptography.hazmat.primitives import padding as crypto_padding
 import threading
 import time
 import os
-import shutil
 from typing import cast
 
 import util

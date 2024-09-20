@@ -3,7 +3,6 @@
 import argparse
 import time
 import os
-import shutil
 import random
 
 import util
@@ -73,7 +72,7 @@ def main() -> None:
 
                 util.try_finally(
                     lambda: handle_folder(path),
-                    lambda: shutil.rmtree(path),
+                    lambda: util.rmtree(path),
                 )
 
             break

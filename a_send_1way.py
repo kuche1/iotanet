@@ -4,7 +4,6 @@ import socket
 import os
 import time
 import argparse
-import shutil
 import random
 
 import util
@@ -78,7 +77,7 @@ def main() -> None:
                 timestamp = float(folder)
             except ValueError:
                 print(f'bad folder, invalid name: {folder}')
-                shutil.rmtree(folder_path)
+                util.rmtree(folder_path)
                 continue
 
             timestamps.append(timestamp)
@@ -104,7 +103,7 @@ def main() -> None:
 
             util.try_finally(
                 lambda: handle_folder(root),
-                lambda: shutil.rmtree(root),
+                lambda: util.rmtree(root),
             )
 
 if __name__ == '__main__':
