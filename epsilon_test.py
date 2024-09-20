@@ -3,7 +3,7 @@
 import util
 
 from b_recv_1way import FILE_PUBLIC_KEY
-from delta import QUERY_TYPE_PING, QUERY_TYPE_GIVE_ME_YOUR_PUBLIC_KEY, QUERY_TYPE_GIVE_ME_THE_PEERS_YOU_KNOW
+from c_recv_query import QUERY_TYPE_PING, QUERY_TYPE_GIVE_ME_YOUR_PUBLIC_KEY, QUERY_TYPE_GIVE_ME_THE_PEERS_YOU_KNOW
 from epsilon import send_query, peer_create_or_update
 
 # add peers

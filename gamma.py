@@ -7,6 +7,7 @@ import shutil
 import errno
 
 import util
+from util import echo as print
 from util import Symetric_key, SYMETRIC_KEY_SIZE_BYTES, SYMETRIC_KEY_IV_SIZE_BYTES, Node
 
 from a_send_1way import ITER_SLEEP_SEC, create_send_entry

@@ -23,8 +23,8 @@
         b_recv_1way.py \
         gamma.py \
         gamma_test.py \
-        delta.py \
-        delta_test.py \
+        c_recv_query.py \
+        c_recv_query_test.py \
         epsilon.py \
         epsilon_test.py
 
@@ -32,7 +32,7 @@
     ./b_recv_1way.py $port &
     sleep 0.1
     ./gamma.py &
-    ./delta.py &
+    ./c_recv_query.py &
     ./epsilon.py &
 
     echo '~~{{(( all started ))}}~~'
