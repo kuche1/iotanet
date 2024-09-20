@@ -8,7 +8,7 @@ from typing import Callable
 
 import util
 
-from alpha import ITER_SLEEP_SEC, create_send_entry
+from a_send_1way import ITER_SLEEP_SEC, create_send_entry
 from beta import encrypt_symetric, FILE_PUBLIC_KEY
 from gamma import FOLDER_REQUESTS, MESSAGE_TYPE_RESPONSE, SEP, FILENAME_ADDR
 

@@ -16,7 +16,7 @@ from typing import cast
 import util
 from util import Symetric_key, SYMETRIC_KEY_SIZE_BYTES, SYMETRIC_BLOCKSIZE_BYTES, Addr, Private_key, Public_key, Node, public_key_to_bytes
 
-from alpha import create_send_entry
+from a_send_1way import create_send_entry
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 

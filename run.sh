@@ -19,7 +19,7 @@
     $MYPY \
         util.py \
         util_test.py \
-        alpha.py \
+        a_send_1way.py \
         beta.py \
         beta_test.py \
         gamma.py \
@@ -29,31 +29,12 @@
         epsilon.py \
         epsilon_test.py
 
-    ./alpha.py &
+    ./a_send_1way.py &
     ./beta.py $port &
     sleep 0.1
     ./gamma.py &
     ./delta.py &
     ./epsilon.py &
-    # zeta
-    # eta
-    # theta
-    # iota
-    # kappa
-    # lambda
-    # mu
-    # nu
-    # xi
-    # omicron
-    # pi
-    # rho
-    # sigma
-    # tau
-    # upsilon
-    # phi
-    # chi
-    # psi
-    # omega
 
     echo '~~{{(( all started ))}}~~'
 

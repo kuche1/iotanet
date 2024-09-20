@@ -9,7 +9,7 @@ import random
 import util
 from util import Node, Addr, Public_key
 
-from alpha import ITER_SLEEP_SEC
+from a_send_1way import ITER_SLEEP_SEC
 from beta import FILE_PUBLIC_KEY, FILE_PORT
 from gamma import FOLDER_RESPONSES, FILENAME_PRIVATE_DATA, FILENAME_RESPONSE, send_circular, FILENAME_SENDER_ADDR
 
