@@ -141,7 +141,7 @@ def handle_file(path:str, message_file:str) -> None:
         with open(f'{root_tmp}/return_path', 'wb') as f:
             f.write(return_path)
         
-        shutil.move(root_tmp, root_saved)
+        util.move(root_tmp, root_saved)
 
     elif type_ == MESSAGE_TYPE_RESPONSE:
 
@@ -184,7 +184,7 @@ def handle_file(path:str, message_file:str) -> None:
         with open(f'{root_tmp}/{FILENAME_RESPONSE}', 'wb') as f:
             f.write(query_response)
         
-        shutil.move(root_tmp, root_saved)
+        util.move(root_tmp, root_saved)
 
     else:
 

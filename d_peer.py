@@ -45,7 +45,7 @@ def send_measure(query:bytes, private_data:bytes, dest_addr:Addr, extra_hops:int
     util.file_write_addr(f'{root}/{SEND_MEASURE_FILENAME_DEST}', dest_addr)
     util.file_write_int(f'{root}/{SEND_MEASURE_FILENAME_EXTRA_HOPS}', extra_hops)
 
-    shutil.move(root, save_loc)
+    util.move(root, save_loc)
 
 ### deal with entry for sending a message
 

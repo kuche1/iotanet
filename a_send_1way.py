@@ -37,7 +37,7 @@ def create_send_entry(addr:Addr, data:bytes) -> None:
     with open(f'{root}/{FILE_DATA}', 'wb') as f:
         f.write(data)
 
-    shutil.move(root, target_root)
+    util.move(root, target_root)
 
 def handle_folder(root:str) -> None:
 

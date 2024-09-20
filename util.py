@@ -45,7 +45,6 @@ Node = tuple[Addr,Public_key]
 def gen_tmp_file_path() -> str:
     return f'{FOLDER_TMP}/{time.time()}_{random.random()}'
 
-# TODO replace shutil.move with this
 def move(src:str, dst:str) -> None:
     shutil.move(src, dst)
 
