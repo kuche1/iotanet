@@ -39,7 +39,7 @@ def handle_folder(path:str) -> None:
 
     assert len(private_data) > 0
 
-    # TODO this shouldn't be happening here
+    # TODO this shouldn't be happening here (1 it should be in a "peer" folder ) (2 it should be in it's own thread, so that there is no change the multiple processess call in thecrease_queries function at the same time)
     path_taken, private_data = util.chop_list_of_addrs(private_data)
 
     query_type = private_data[0:1]
