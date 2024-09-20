@@ -1,5 +1,8 @@
 #! /usr/bin/env python3
 
+# TODO there should be another "peer" file that deals with sending, and counting statistics, and another that deals with receiving,
+# and another that deals with asking for other peers, and so on
+
 import argparse
 import os
 import random
@@ -122,11 +125,12 @@ def main() -> None:
         util.file_read_public_key(FILE_PUBLIC_KEY),
     )
 
+    # TODO there should probably be another thread that does things like check if the peers are currently alive,
+    # ask for more peers, ...
+
     while True:
 
         time.sleep(ITER_SLEEP_SEC)
-
-        print('TODO nothing')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('daemon: peer managament')

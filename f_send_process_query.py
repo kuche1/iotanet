@@ -24,10 +24,6 @@ def send_query(query_type:bytes, query_args:bytes, private_data:bytes, dest:Node
 
     query = query_type + query_args
 
-    # TODO
-    # I'm no sure if this logic should be here, or in `send_circular`, or even somewhere on a higher level
-    # (actually, the more I think about it, the better of an idea seems that this peer evaluation thing should be in `send_circular` and the path selection too)
-
     path:list[Node] = peer_get_random_nodes_based_on_reliability(extra_hops)
 
     split_idx = random.randint(0, len(path)-1)
