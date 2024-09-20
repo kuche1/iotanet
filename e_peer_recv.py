@@ -18,7 +18,7 @@ FOLDER_RECEIVED_MEASURED = f'{HERE}/_received_measured'
 def handle_folder(path:str) -> None:
 
     # responder_addr = util.file_read_addr(f'{path}/{FILENAME_RESPONDER_ADDR}')
-    private_data = util.file_read_bytes(f'{path}/{FILENAME_PRIVATE_DATA}')
+    private_data = util.file_deserialise(f'{path}/bytes_{FILENAME_PRIVATE_DATA}')
     # response = util.file_read_bytes(f'{path}/{FILENAME_RESPONSE}')
 
     path_taken, private_data = util.chop_list_of_addrs(private_data)

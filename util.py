@@ -276,6 +276,8 @@ def file_deserialise(file:str) -> Any:
 
     if typ == 'addr':
         return file_read_addr(file)
+    elif typ == 'bytes':
+        return file_read_bytes(file)
     else:
         assert False, f'unknown type `{typ}` for file `{file}`'
 
@@ -283,6 +285,13 @@ def file_serialise_addr(file:str, addr:Addr) -> None:
     filename = os.path.basename(file)
     directory = os.path.dirname(file)
     file_write_addr(f'{directory}/addr_{filename}', addr)
+
+def file_serialise_bytes(file:str, data:bytes) -> None:
+    filename = os.path.basename(file)
+    directory = os.path.dirname(file)
+    file_write_bytes(f'{directory}/bytes_{filename}', data)
+
+# TODO for the folder serialisation I need to sort the items before I use os.walk
 
 ######
 ###### echo
