@@ -20,8 +20,7 @@
         util.py \
         util_test.py \
         a_send_1way.py \
-        beta.py \
-        beta_test.py \
+        b_recv_1way.py \
         gamma.py \
         gamma_test.py \
         delta.py \
@@ -30,7 +29,7 @@
         epsilon_test.py
 
     ./a_send_1way.py &
-    ./beta.py $port &
+    ./b_recv_1way.py $port &
     sleep 0.1
     ./gamma.py &
     ./delta.py &

@@ -14,6 +14,7 @@ import shutil
 from typing import cast
 
 import util
+from util import echo as print
 from util import Symetric_key, SYMETRIC_KEY_SIZE_BYTES, SYMETRIC_BLOCKSIZE_BYTES, Addr, Private_key, Public_key, Node, public_key_to_bytes
 
 from a_send_1way import create_send_entry
@@ -199,7 +200,7 @@ def handle_msg(payload:bytes, private_key:Private_key, connection_time:float) ->
 
         create_send_entry(addr, payload)
 
-        print(f'beta: sending data to {addr}')
+        print(f'sending data to {addr}')
 
     elif cmd == CMD_PUSH:
 
@@ -216,7 +217,7 @@ def handle_msg(payload:bytes, private_key:Private_key, connection_time:float) ->
         
         shutil.move(data_tmp, data_saved)
 
-        print(f'beta: pushing')
+        print(f'pushing')
 
     else:
 

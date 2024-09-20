@@ -1,5 +1,5 @@
 
-from typing import Callable, cast
+from typing import Callable, cast, Any
 import os
 import cryptography
 import cryptography.hazmat.primitives.asymmetric.rsa as cryptography_rsa
@@ -7,6 +7,8 @@ import cryptography.hazmat.primitives.serialization as cryptography_serializatio
 import random
 import traceback
 import datetime
+import io
+import inspect
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 
@@ -219,3 +221,23 @@ def chop_list_of_addrs(data:bytes) -> tuple[list[Addr], bytes]:
         addr, data = chop_addr(data)
         addrs.append(addr)
     return addrs, data
+
+######
+###### echo
+######
+
+def echo(*a:Any, **kw:Any) -> None:
+    file = io.StringIO()
+    print(*a, **kw, file=file)
+    buf = file.getvalue()
+
+    frame = inspect.stack()[1]
+    filename = frame[0].f_code.co_filename
+    filename = os.path.basename(filename)
+
+    if filename.endswith('.py'):
+        filename = filename[:-3]
+
+    buf = '\n'.join([f'{filename}: {line}' for line in buf.splitlines()])
+
+    print(buf)
