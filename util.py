@@ -32,12 +32,6 @@ Symetric_key = tuple[bytes, bytes]
 
 Node = tuple[Addr,Public_key]
 
-# TODO
-# this fucking file_read_x file_write_y shit is getting ridiculous
-# it's ok to have a bunch of file_write_ functions, but the reading should
-# be "read me all the shit, then return it" and if the count or types don't match
-# then oh well, we have an invalid request and we are going to ignore it
-
 ######
 ###### atomic operation enablers
 ######
