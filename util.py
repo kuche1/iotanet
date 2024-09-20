@@ -265,8 +265,18 @@ def chop_list_of_addrs(data:bytes) -> tuple[list[Addr], bytes]:
     return addrs, data
 
 ######
-###### dynamic deserialisation
+###### dynamic (de)serialisation [seems like a cool idea but needs refinement]
 ######
+
+def file_serialise_addr(file:str, addr:Addr) -> None:
+    filename = os.path.basename(file)
+    directory = os.path.dirname(file)
+    file_write_addr(f'{directory}/addr_{filename}', addr)
+
+def file_serialise_bytes(file:str, data:bytes) -> None:
+    filename = os.path.basename(file)
+    directory = os.path.dirname(file)
+    file_write_bytes(f'{directory}/bytes_{filename}', data)
 
 def file_deserialise(file:str) -> Any:
     filename = os.path.basename(file)
@@ -281,17 +291,15 @@ def file_deserialise(file:str) -> Any:
     else:
         assert False, f'unknown type `{typ}` for file `{file}`'
 
-def file_serialise_addr(file:str, addr:Addr) -> None:
-    filename = os.path.basename(file)
-    directory = os.path.dirname(file)
-    file_write_addr(f'{directory}/addr_{filename}', addr)
-
-def file_serialise_bytes(file:str, data:bytes) -> None:
-    filename = os.path.basename(file)
-    directory = os.path.dirname(file)
-    file_write_bytes(f'{directory}/bytes_{filename}', data)
-
-# TODO for the folder serialisation I need to sort the items before I use os.walk
+def folder_deserialise(root:str) -> list[Any]:
+    ret = []
+    for files_path, _folders, files in os.walk(root):
+        files.sort() # sorted alphabetically
+        for file in files:
+            file_path = f'{files_path}/{file}'
+            ret.append(file_deserialise(file_path))
+        break
+    return ret
 
 ######
 ###### echo

@@ -18,7 +18,7 @@ FOLDER_RECEIVED_MEASURED = f'{HERE}/_received_measured'
 def handle_folder(path:str) -> None:
 
     # responder_addr = util.file_read_addr(f'{path}/{FILENAME_RESPONDER_ADDR}')
-    private_data = util.file_deserialise(f'{path}/bytes_{FILENAME_PRIVATE_DATA}')
+    private_data = util.file_read_bytes(f'{path}/{FILENAME_PRIVATE_DATA}')
     # response = util.file_read_bytes(f'{path}/{FILENAME_RESPONSE}')
 
     path_taken, private_data = util.chop_list_of_addrs(private_data)
@@ -26,10 +26,6 @@ def handle_folder(path:str) -> None:
     for addr in path_taken:
         peer_increase_queries_answered(addr)
 
-    # print()
-    # print(f'{responder_addr=}')
-    # print(f'{private_data=}')
-    # print(f'{response=}')
     print(f'{path_taken=}')
 
     root = util.gen_tmp_file_path()
@@ -37,9 +33,9 @@ def handle_folder(path:str) -> None:
 
     os.mkdir(root)
 
-    util.copy(f'{path}/addr_{FILENAME_RESPONDER_ADDR}', f'{root}/{FILENAME_RESPONDER_ADDR}')
+    util.copy(f'{path}/{FILENAME_RESPONDER_ADDR}', f'{root}/{FILENAME_RESPONDER_ADDR}')
     util.file_write_bytes(f'{root}/{FILENAME_PRIVATE_DATA}', private_data)
-    util.copy(f'{path}/bytes_{FILENAME_RESPONSE}', f'{root}/{FILENAME_RESPONSE}')
+    util.copy(f'{path}/{FILENAME_RESPONSE}', f'{root}/{FILENAME_RESPONSE}')
 
     util.move(root, root_save)
 
