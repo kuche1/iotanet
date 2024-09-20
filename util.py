@@ -265,6 +265,26 @@ def chop_list_of_addrs(data:bytes) -> tuple[list[Addr], bytes]:
     return addrs, data
 
 ######
+###### dynamic deserialisation
+######
+
+def file_deserialise(file:str) -> Any:
+    filename = os.path.basename(file)
+
+    assert '_' in filename
+    typ = filename.split('_')[0]
+
+    if typ == 'addr':
+        return file_read_addr(file)
+    else:
+        assert False, f'unknown type `{typ}` for file `{file}`'
+
+def file_serialise_addr(file:str, addr:Addr) -> None:
+    filename = os.path.basename(file)
+    directory = os.path.dirname(file)
+    file_write_addr(f'{directory}/addr_{filename}', addr)
+
+######
 ###### echo
 ######
 

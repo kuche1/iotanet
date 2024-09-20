@@ -175,7 +175,7 @@ def handle_file(path:str, message_file:str) -> None:
 
         os.mkdir(root_tmp)
 
-        util.file_write_addr(f'{root_tmp}/{FILENAME_RESPONDER_ADDR}', responder_addr)
+        util.file_serialise_addr(f'{root_tmp}/{FILENAME_RESPONDER_ADDR}', responder_addr)
 
         util.file_write_bytes(f'{root_tmp}/{FILENAME_PRIVATE_DATA}', private_data) 
 
