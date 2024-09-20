@@ -20,7 +20,7 @@ HERE = os.path.dirname(os.path.realpath(__file__))
 
 FOLDER_PEERS = f'{HERE}/_peers'
 FOLDER_SEND_MEASURE = f'{HERE}/_send_measure'
-FOLDER_SEND_MEASURE_TMP = f'{FOLDER_SEND_MEASURE}_tmp' # TODO
+FOLDER_SEND_MEASURE_TMP = f'{FOLDER_SEND_MEASURE}_tmp'
 
 PEER_FILENAME_PUBLIC_KEY = 'public_key'
 PEER_FILENAME_QUERIES_SENT = 'queries_sent'
