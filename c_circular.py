@@ -179,7 +179,7 @@ def handle_file(path:str, message_file:str) -> None:
 
         util.file_serialise_bytes(f'{root_tmp}/{FILENAME_PRIVATE_DATA}', private_data) 
 
-        util.file_write_bytes(f'{root_tmp}/{FILENAME_RESPONSE}', query_response)
+        util.file_serialise_bytes(f'{root_tmp}/{FILENAME_RESPONSE}', query_response)
         
         util.move(root_tmp, root_saved)
 

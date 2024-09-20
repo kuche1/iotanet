@@ -39,7 +39,7 @@ def handle_folder(path:str) -> None:
 
     util.copy(f'{path}/addr_{FILENAME_RESPONDER_ADDR}', f'{root}/{FILENAME_RESPONDER_ADDR}')
     util.file_write_bytes(f'{root}/{FILENAME_PRIVATE_DATA}', private_data)
-    util.copy(f'{path}/{FILENAME_RESPONSE}', f'{root}/{FILENAME_RESPONSE}')
+    util.copy(f'{path}/bytes_{FILENAME_RESPONSE}', f'{root}/{FILENAME_RESPONSE}')
 
     util.move(root, root_save)
 
