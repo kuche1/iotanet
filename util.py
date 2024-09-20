@@ -1,3 +1,4 @@
+#! /usr/bin/env python3
 
 from typing import Callable, cast, Any
 import os
@@ -9,8 +10,13 @@ import traceback
 import datetime
 import io
 import inspect
+import argparse
+import time
+import shutil
 
 HERE = os.path.dirname(os.path.realpath(__file__))
+
+FOLDER_TMP = f'{HERE}/_tmp'
 
 SYMETRIC_KEY_SIZE_BYTES = 32 # 32 bytes, for AES-256
 SYMETRIC_BLOCKSIZE_BYTES = 16
@@ -33,36 +39,59 @@ Node = tuple[Addr,Public_key]
 # then oh well, we have an invalid request and we are going to ignore it
 
 ######
-###### int: serialisation
+###### atomic operation enablers
 ######
 
-def file_read_int(file:str) -> int:
-    return int(file_read_str(file))
+def gen_tmp_file_path() -> str:
+    return f'{FOLDER_TMP}/{time.time()}_{random.random()}'
 
-def file_write_int(file:str, num:int) -> None:
-    with open(file, 'w') as f:
-        f.write(str(num))
-
-def int_to_bytes(num:int) -> bytes:
-    sep = b';'
-    return str(num).encode() + sep
-
-def file_increase(file:str) -> None:
-    # TODO better use replace
-    num = file_read_int(file)
-    file_write_int(file, num + 1)
+# TODO replace shutil.move with this
+def move(src:str, dst:str) -> None:
+    shutil.move(src, dst)
 
 ######
-###### generic: serialisation
+###### serialisation: bytes
 ######
 
 def file_read_bytes(file:str) -> bytes:
     with open(file, 'rb') as f:
         return f.read()
 
+def file_write_bytes(file:str, data:bytes) -> None:
+    tmp = gen_tmp_file_path()
+
+    with open(tmp, 'wb') as f:
+        f.write(data)
+    
+    move(tmp, file)
+
+######
+###### serialisation: str
+######
+
 def file_read_str(file:str) -> str:
-    with open(file, 'r') as f:
-        return f.read()
+    return file_read_bytes(file).decode()
+
+def file_write_str(file:str, data:str) -> None:
+    return file_write_bytes(file, data.encode())
+
+######
+###### serialisation: int
+######
+
+def file_read_int(file:str) -> int:
+    return int(file_read_str(file))
+
+def file_write_int(file:str, num:int) -> None:
+    return file_write_str(file, str(num))
+
+def int_to_bytes(num:int) -> bytes:
+    sep = b';'
+    return str(num).encode() + sep
+
+def file_increase(file:str) -> None:
+    num = file_read_int(file)
+    file_write_int(file, num + 1)
 
 def chop_int(data:bytes) -> tuple[int, bytes]:
     sep = b';'
@@ -73,7 +102,7 @@ def chop_int(data:bytes) -> tuple[int, bytes]:
     return num, data
 
 ######
-###### generic: control flow
+###### control flow
 ######
 
 def try_finally(fnc:Callable[[],None], cleanup:Callable[[],None]) -> None:
@@ -89,7 +118,7 @@ def try_finally(fnc:Callable[[],None], cleanup:Callable[[],None]) -> None:
         cleanup()
 
 ######
-###### key: string operation
+###### serialisation: key
 ######
 
 def symetric_key_to_bytes(key:Symetric_key) -> bytes:
@@ -107,10 +136,6 @@ def chop_symetric_key(data:bytes) -> tuple[Symetric_key, bytes]:
     assert len(sym_iv) == SYMETRIC_KEY_IV_SIZE_BYTES
 
     return (sym_key, sym_iv), data
-
-######
-###### key: serialisation
-######
 
 def bytes_to_public_key(data:bytes) -> Public_key:
     key = cryptography_serialization.load_pem_public_key(
@@ -135,8 +160,8 @@ def file_read_symetric_key(file:str) -> Symetric_key:
     return ident_key, ident_iv
 
 def file_write_symetric_key(file:str, key:Symetric_key) -> None:
-    with open(file, 'wb') as f:
-        f.write(symetric_key_to_bytes(key))
+    data = symetric_key_to_bytes(key)
+    file_write_bytes(file, data)
 
 def public_key_to_bytes(key:Public_key) -> bytes:
     return key.public_bytes(
@@ -149,12 +174,11 @@ def file_read_public_key(file:str) -> Public_key:
     return bytes_to_public_key(key_bytes)
 
 def file_write_public_key(file:str, pub:Public_key) -> None:
-    key_bytes = public_key_to_bytes(pub)
-    with open(file, 'wb') as f:
-        f.write(key_bytes)
+    data = public_key_to_bytes(pub)
+    file_write_bytes(file, data)
 
 ######
-###### port: serialisation
+###### serialisation: port
 ######
 
 def file_write_port(file:str, port:Port) -> None:
@@ -166,7 +190,7 @@ def file_read_port(file:str) -> Port:
     return port
 
 ######
-###### addr: serialisation
+###### serialisation: addr
 ######
 
 def addr_to_bytes(addr:Addr) -> bytes:
@@ -200,8 +224,8 @@ def chop_addr_from_str(data:str) -> tuple[Addr, str]:
     return addr, data_bytes.decode()
 
 def file_write_addr(file:str, addr:Addr) -> None:
-    with open(file, 'wb') as f:
-        f.write(addr_to_bytes(addr))
+    data = addr_to_bytes(addr)
+    file_write_bytes(file, data)
 
 def file_read_addr(file:str) -> Addr:
 
@@ -212,10 +236,6 @@ def file_read_addr(file:str) -> Addr:
     assert len(data) == 0
 
     return addr
-
-def file_write_bytes(file:str, data:bytes) -> None:
-    with open(file, 'wb') as f:
-        f.write(data)
 
 def list_of_nodes_to_bytes_of_node_addrs(nodes:list[Node]) -> bytes:
     data = b''
@@ -251,3 +271,21 @@ def echo(*a:Any, **kw:Any) -> None:
     buf = '\n'.join([f'{filename}: {line}' for line in buf.splitlines()])
 
     print(buf)
+
+######
+###### main (init)
+######
+
+def main() -> None:
+
+    try:
+        shutil.rmtree(FOLDER_TMP)
+    except FileNotFoundError:
+        pass
+
+    os.mkdir(FOLDER_TMP)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser('utilities')
+    args = parser.parse_args()
+    main()

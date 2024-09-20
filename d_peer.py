@@ -182,11 +182,8 @@ def main() -> None:
     os.makedirs(FOLDER_SEND_MEASURE, exist_ok=True)
     os.makedirs(FOLDER_SEND_MEASURE_TMP, exist_ok=True)
 
-    # TODO stupid, find another way to add yourself, or at least do not use the local ip
-    peer_create_or_update(
-        ('127.0.0.1', util.file_read_port(FILE_PORT)),
-        util.file_read_public_key(FILE_PUBLIC_KEY),
-    )
+    me_addr, me_pub = peer_me()
+    peer_create_or_update(me_addr, me_pub)
 
     # TODO there should probably be another thread that does things like check if the peers are currently alive,
     # ask for more peers, ...

@@ -29,6 +29,7 @@
         f_send_process_query.py \
         f_send_process_query_test.py
 
+    ./util.py
     ./a_send_1way.py &
     ./b_recv_1way.py $port &
     sleep 0.1
