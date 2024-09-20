@@ -11,7 +11,7 @@ from util import Node, Addr, Public_key
 
 from a_send_1way import ITER_SLEEP_SEC
 from b_recv_1way import FILE_PUBLIC_KEY, FILE_PORT
-from gamma import FOLDER_RESPONSES, FILENAME_PRIVATE_DATA, FILENAME_RESPONSE, send_circular, FILENAME_SENDER_ADDR
+from c_circular import FOLDER_RESPONSES, FILENAME_PRIVATE_DATA, FILENAME_RESPONSE, send_circular, FILENAME_SENDER_ADDR
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 

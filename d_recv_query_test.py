@@ -3,7 +3,7 @@
 import util
 
 from b_recv_1way import FILE_PUBLIC_KEY
-from gamma import send_circular
+from c_circular import send_circular
 from d_recv_query import QUERY_TYPE_PING, QUERY_TYPE_GIVE_ME_YOUR_PUBLIC_KEY, QUERY_TYPE_GIVE_ME_THE_PEERS_YOU_KNOW
 
 pub_bytes = util.file_read_bytes(FILE_PUBLIC_KEY)
