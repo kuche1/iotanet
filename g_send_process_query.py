@@ -11,7 +11,7 @@ from util import Node, Addr
 
 from a_send_1way import ITER_SLEEP_SEC
 from c_circular import FILENAME_PRIVATE_DATA, FILENAME_RESPONSE, FILENAME_RESPONDER_ADDR
-from d_peer_send import send_measure, peer_bytes_to_list_of_nodes
+from d_peer_send import send_measure, peer_bytes_to_list_of_nodes, peer_create_or_update
 from e_peer_recv import FOLDER_RECEIVED_MEASURED
 from f_recv_query import QUERY_TYPE_GIVE_ME_YOUR_PUBLIC_KEY, QUERY_TYPE_PING, QUERY_TYPE_GIVE_ME_THE_PEERS_YOU_KNOW
 
@@ -63,6 +63,15 @@ def handle_folder(path:str) -> None:
         nodes = peer_bytes_to_list_of_nodes(response)
 
         print(f'{responder_addr} knows the following pers: {nodes}')
+
+        print('updaing peer list...')
+
+        for node in nodes:
+            addr, pub = node
+            peer_create_or_update(addr, pub)
+            # TODO we should be checking if the public keys match, and try and deduce who is lying
+
+        print('peer list updated')
     
     else:
 
