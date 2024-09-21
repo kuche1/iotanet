@@ -108,6 +108,92 @@ def list_of_nodes_to_bytes_of_node_addrs(nodes:list[Node]) -> bytes:
     return data
 
 ######
+###### chopping off things from bytes
+######
+# NOTE: all the extra data inserted from "_to_bytes" needs to be taken care of
+
+###
+### int
+
+def chop_int(data:bytes) -> tuple[int, bytes]:
+    sep = b';'
+    idx = data.index(sep)
+    num_bytes = data[:idx]
+    data = data[idx + len(sep):]
+    num = int(num_bytes)
+    return num, data
+
+###
+### len
+
+def chop_len(data:bytes) -> tuple[int, bytes]:
+    length, data = chop_int(data)
+    assert length >= 0
+    return length, data
+
+###
+### addr
+
+def chop_addr(data:bytes) -> tuple[Addr, bytes]:
+    sep = b';'
+
+    idx = data.index(sep)
+    ip_bytes = data[:idx]
+    data = data[idx + len(sep):]
+
+    ip = ip_bytes.decode()
+
+    idx = data.index(sep)
+    port_bytes = data[:idx]
+    data = data[idx + len(sep):]
+
+    port = int(port_bytes.decode())
+    assert port > 0
+
+    return (ip, port), data
+
+def chop_addr_from_str(data:str) -> tuple[Addr, str]:
+    addr, data_bytes = chop_addr(data.encode())
+    return addr, data_bytes.decode()
+
+def chop_list_of_addrs(data:bytes) -> tuple[list[Addr], bytes]:
+    addrs:list[Addr] = []
+    size, data = chop_len(data)
+    for _ in range(size):
+        addr, data = chop_addr(data)
+        addrs.append(addr)
+    return addrs, data
+
+###
+### symetric key
+
+def chop_symetric_key(data:bytes) -> tuple[Symetric_key, bytes]:
+
+    sym_key = data[:SYMETRIC_KEY_SIZE_BYTES]
+    data = data[SYMETRIC_KEY_SIZE_BYTES:]
+    assert len(sym_key) == SYMETRIC_KEY_SIZE_BYTES
+
+    sym_iv = data[:SYMETRIC_KEY_IV_SIZE_BYTES]
+    data = data[SYMETRIC_KEY_IV_SIZE_BYTES:]
+    assert len(sym_iv) == SYMETRIC_KEY_IV_SIZE_BYTES
+
+    return (sym_key, sym_iv), data
+
+###
+### public key
+
+def chop_public_key(data:bytes) -> tuple[Public_key, bytes]:
+    length, data = chop_len(data)
+
+    pub_rawbytes = data[:length]
+    data = data[length:]
+    assert len(pub_rawbytes) == length
+
+    pub = rawbytes_to_public_key(pub_rawbytes)
+
+    return pub, data
+
+######
 ###### serialisation: bytes
 ######
 
@@ -147,14 +233,6 @@ def file_increase(file:str) -> None:
     num = file_read_int(file)
     file_write_int(file, num + 1)
 
-def chop_int(data:bytes) -> tuple[int, bytes]:
-    sep = b';'
-    idx = data.index(sep)
-    num_bytes = data[:idx]
-    data = data[idx + len(sep):]
-    num = int(num_bytes)
-    return num, data
-
 ######
 ###### control flow
 ######
@@ -174,18 +252,6 @@ def try_finally(fnc:Callable[[],None], cleanup:Callable[[],None]) -> None:
 ######
 ###### serialisation: key
 ######
-
-def chop_symetric_key(data:bytes) -> tuple[Symetric_key, bytes]:
-
-    sym_key = data[:SYMETRIC_KEY_SIZE_BYTES]
-    data = data[SYMETRIC_KEY_SIZE_BYTES:]
-    assert len(sym_key) == SYMETRIC_KEY_SIZE_BYTES
-
-    sym_iv = data[:SYMETRIC_KEY_IV_SIZE_BYTES]
-    data = data[SYMETRIC_KEY_IV_SIZE_BYTES:]
-    assert len(sym_iv) == SYMETRIC_KEY_IV_SIZE_BYTES
-
-    return (sym_key, sym_iv), data
 
 def file_read_symetric_key(file:str) -> Symetric_key:
 
@@ -234,28 +300,6 @@ def file_read_port(file:str) -> Port:
 def addr_to_str(addr:Addr) -> str:
     return addr_to_bytes(addr).decode()
 
-def chop_addr(data:bytes) -> tuple[Addr, bytes]:
-    sep = b';'
-
-    idx = data.index(sep)
-    ip_bytes = data[:idx]
-    data = data[idx + len(sep):]
-
-    ip = ip_bytes.decode()
-
-    idx = data.index(sep)
-    port_bytes = data[:idx]
-    data = data[idx + len(sep):]
-
-    port = int(port_bytes.decode())
-    assert port > 0
-
-    return (ip, port), data
-
-def chop_addr_from_str(data:str) -> tuple[Addr, str]:
-    addr, data_bytes = chop_addr(data.encode())
-    return addr, data_bytes.decode()
-
 def file_write_addr(file:str, addr:Addr) -> None:
     data = addr_to_bytes(addr)
     file_write_bytes(file, data)
@@ -269,14 +313,6 @@ def file_read_addr(file:str) -> Addr:
     assert len(data) == 0
 
     return addr
-
-def chop_list_of_addrs(data:bytes) -> tuple[list[Addr], bytes]:
-    addrs:list[Addr] = []
-    size, data = chop_int(data)
-    for _ in range(size):
-        addr, data = chop_addr(data)
-        addrs.append(addr)
-    return addrs, data
 
 ######
 ###### dynamic (de)serialisation [seems like a cool idea but needs refinement]

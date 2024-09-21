@@ -44,7 +44,6 @@ def handle_request_folder(path:str) -> None:
         resp = b'yes, I got your request: ' + query
 
     elif query_type == QUERY_TYPE_GIVE_ME_THE_PEERS_YOU_KNOW:
-        # TODO untested
 
         assert len(query) == 0
         resp = peer_all_nodes_to_bytes()

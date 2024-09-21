@@ -11,8 +11,9 @@ from util import Node, Addr
 
 from a_send_1way import ITER_SLEEP_SEC
 from c_circular import FILENAME_PRIVATE_DATA, FILENAME_RESPONSE, FILENAME_RESPONDER_ADDR
-from d_peer_send import peer_increase_queries_answered, send_measure
+from d_peer_send import send_measure, peer_bytes_to_list_of_nodes
 from e_peer_recv import FOLDER_RECEIVED_MEASURED
+from f_recv_query import QUERY_TYPE_GIVE_ME_YOUR_PUBLIC_KEY, QUERY_TYPE_PING, QUERY_TYPE_GIVE_ME_THE_PEERS_YOU_KNOW
 
 ######
 ###### send query
@@ -42,11 +43,30 @@ def handle_folder(path:str) -> None:
     query_type = private_data[0:1]
     private_data = private_data[1:]
 
-    print()
-    print(f'{responder_addr=}')
-    print(f'{query_type=}')
-    print(f'{response=}')
-    print(f'{private_data=}')
+    # print()
+    # print(f'{responder_addr=}')
+    # print(f'{query_type=}')
+    # print(f'{response=}')
+    # print(f'{private_data=}')
+    # print()
+
+    if query_type == QUERY_TYPE_GIVE_ME_YOUR_PUBLIC_KEY:
+
+        print(f'I got {responder_addr}\'s public key {response!r}')
+
+    elif query_type == QUERY_TYPE_PING:
+
+        print(f'{responder_addr} answered to my ping with {response!r}')
+    
+    elif query_type == QUERY_TYPE_GIVE_ME_THE_PEERS_YOU_KNOW:
+
+        nodes = peer_bytes_to_list_of_nodes(response)
+
+        print(f'{responder_addr} knows the following pers: {nodes}')
+    
+    else:
+
+        assert False, f'unknown query type {query_type!r}'
 
 ######
 ###### main

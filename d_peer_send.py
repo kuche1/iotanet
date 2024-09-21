@@ -153,6 +153,22 @@ def peer_all_nodes_to_bytes() -> bytes:
     
     return ret
 
+def peer_bytes_to_list_of_nodes(data:bytes) -> list[Node]:
+
+    ret = []
+
+    length, data = util.chop_len(data)
+
+    for _ in range(length):
+        addr, data = util.chop_addr(data)
+        pub, data = util.chop_public_key(data)
+
+        ret.append((addr, pub))
+    
+    assert len(data) == 0
+    
+    return ret
+
 def peer_addr_to_node(addr:Addr) -> Node:
     peer_folder = peer_get_folder_by_addr(addr)
 
