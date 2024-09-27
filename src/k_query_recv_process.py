@@ -12,14 +12,15 @@ from a_send_1way import ITER_SLEEP_SEC, create_send_entry
 from b_recv_1way import encrypt_symetric, FILE_PUBLIC_KEY
 from c_circular import FOLDER_REQUESTS, MESSAGE_TYPE_RESPONSE, SEP, FILENAME_ADDR
 from g_peer_send import peer_all_nodes_to_bytes
+from j_lib_query import QUERY_TYPE_GIVE_ME_YOUR_PUBLIC_KEY, QUERY_TYPE_PING, QUERY_TYPE_GIVE_ME_THE_PEERS_YOU_KNOW
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 
-QUERY_TYPE_GIVE_ME_YOUR_PUBLIC_KEY = b'0'
-QUERY_TYPE_PING = b'1' # we could remove this one
-QUERY_TYPE_GIVE_ME_THE_PEERS_YOU_KNOW = b'2'
+######
+###### receive and answer to query: handle folder
+######
 
-def handle_request_folder(path:str) -> None:
+def receive_answer_query_handle_folder(path:str) -> None:
 
     query = util.file_read_bytes(f'{path}/query')
     sym_key = util.file_read_symetric_key(f'{path}/sym_key')
@@ -58,7 +59,11 @@ def handle_request_folder(path:str) -> None:
 
     create_send_entry(addr, resp)
 
-def main() -> None:
+######
+###### receive and answer to query: main
+######
+
+def receive_answer_query_main() -> None:
 
     while True:
 
@@ -71,13 +76,17 @@ def main() -> None:
                 path = f'{FOLDER_REQUESTS}/{request_folder}'
 
                 util.try_finally(
-                    lambda: handle_request_folder(path),
+                    lambda: receive_answer_query_handle_folder(path),
                     lambda: util.rmtree(path),
                 )
 
             break
 
+######
+###### __main__
+######
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('daemon: query handler')
     args = parser.parse_args()
-    main()
+    receive_answer_query_main()

@@ -29,9 +29,10 @@
         ./e_peer_check_alive.py \
         ./g_peer_send.py \
         ./i_peer_recv.py \
-        ./k_recv_query.py \
-        ./m_send_process_query.py \
-        ./m_send_process_query_test.py
+        ./j_lib_query.py \
+        ./k_query_recv_process.py \
+        ./m_query_send.py \
+        ./m_query_send_test.py
 
     ./util.py
     ./a_send_1way.py &
@@ -41,8 +42,8 @@
     #./e_peer_check_alive.py &
     ./g_peer_send.py &
     ./i_peer_recv.py &
-    ./k_recv_query.py &
-    ./m_send_process_query.py &
+    ./k_query_recv_process.py &
+    ./m_query_send.py &
 
     echo '~~{{(( all started ))}}~~'
 
