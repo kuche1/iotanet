@@ -7,8 +7,13 @@ from b_recv_1way import encrypt_symetric, FILE_PUBLIC_KEY
 from g_peer_send import peer_bytes_to_list_of_nodes, peer_create_or_update, peer_all_nodes_to_bytes
 
 QUERY_TYPE_GIVE_ME_YOUR_PUBLIC_KEY = b'0'
+
 QUERY_TYPE_PING = b'1' # we could remove this one
+
 QUERY_TYPE_GIVE_ME_THE_PEERS_YOU_KNOW = b'2'
+
+QUERY_TYPE_CHECK_ALIVE = b'3'
+QUERY_TYPE_CHECK_ALIVE_YES = b'ye'
 
 def answer_to_query(query_type:bytes, query:bytes, sym_key:Symetric_key, addr:Addr, query_id:bytes, return_path:bytes, resp_header:bytes) -> None:
 
@@ -25,6 +30,11 @@ def answer_to_query(query_type:bytes, query:bytes, sym_key:Symetric_key, addr:Ad
 
         assert len(query) == 0
         resp = peer_all_nodes_to_bytes()
+    
+    elif query_type == QUERY_TYPE_CHECK_ALIVE:
+
+        assert len(query) == 0
+        resp = QUERY_TYPE_CHECK_ALIVE_YES
 
     else:
 
@@ -68,6 +78,11 @@ def process_query_answer(query_type:bytes, response:bytes, responder_addr:Addr, 
 
         print('peer list updated')
     
+    elif query_type == QUERY_TYPE_CHECK_ALIVE:
+
+        assert response == QUERY_TYPE_CHECK_ALIVE_YES
+        # TODO0 add to the alive list
+
     else:
 
         assert False, f'unknown query type {query_type!r}'
