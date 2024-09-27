@@ -8,14 +8,14 @@
     MYPY='mypy --strict --no-incremental'
     # without `--no-incremental` doesnt always work
 
+    cd "$HERE"
+
     if [ $# -ne 1 ]; then
         echo 'you need to give exactly 1 argument - port'
         exit 1
     fi
 
     port="$1"
-
-    cd "$HERE"
 
     trap 'kill -- -$$' EXIT
     # kill all children on exit
