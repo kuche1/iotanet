@@ -11,7 +11,7 @@ from util import Node, Addr
 
 from a_send_1way import ITER_SLEEP_SEC
 from c_circular import FILENAME_PRIVATE_DATA, FILENAME_RESPONSE, FILENAME_RESPONDER_ADDR
-from g_peer_send import send_measure
+from h_peer_send import send_measure
 from i_peer_recv import FOLDER_RECEIVED_MEASURED
 from j_lib_query import process_query_answer
 
