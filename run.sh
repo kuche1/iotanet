@@ -26,6 +26,7 @@
         ./a_send_1way.py \
         ./b_recv_1way.py \
         ./c_circular.py \
+        ./d_lib_peer.py \
         ./g_peer_check_alive.py \
         ./h_peer_send_measure.py \
         ./i_peer_recv_measure.py \
@@ -39,6 +40,7 @@
     ./b_recv_1way.py $port &
     sleep 0.1
     ./c_circular.py &
+    ./d_lib_peer.py
     #./g_peer_check_alive.py &
     ./h_peer_send_measure.py &
     ./i_peer_recv_measure.py &
