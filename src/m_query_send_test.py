@@ -9,10 +9,10 @@ from m_query_send import send_query
 
 # add peers
 
-# peer_create_or_update(
-#     ('127.0.0.1', 6970),
-#     util.file_read_public_key('/var/tmp/iotanet-testing/default-peer-0/_public_key'),
-# )
+peer_create_or_update(
+    ('127.0.0.1', 6970),
+    util.file_read_public_key('/var/tmp/iotanet-testing/peer-0/src/_public_key'),
+)
 # peer_create_or_update(
 #     ('127.0.0.1', 6971),
 #     util.file_read_public_key('/var/tmp/iotanet-testing/default-peer-1/_public_key'),

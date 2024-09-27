@@ -74,6 +74,13 @@ def peer_get_known_addrs() -> list[Addr]:
         ret.append(addr)
     return ret
 
+def peer_get_alive_addrs() -> list[Addr]:
+    ret = []
+    for folder in peer_get_alive_node_folders():
+        addr = util.str_to_addr(os.path.basename(folder))
+        ret.append(addr)
+    return ret
+
 def peer_all_known_nodes_to_bytes() -> bytes:
 
     all_peer_folders = peer_get_known_node_folders()
