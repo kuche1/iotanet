@@ -13,6 +13,7 @@ import inspect
 import argparse
 import time
 import shutil
+import sys
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 
@@ -241,11 +242,11 @@ def try_finally(fnc:Callable[[],None], cleanup:Callable[[],None]) -> None:
     try:
         fnc()
     except:
-         err_info = traceback.format_exc()
-         print()
-         print(f'ERROR ({datetime.date.today()}):')
-         print(err_info)
-         print()
+        err_info = traceback.format_exc()
+        print()
+        print(f'ERROR ({datetime.date.today()}):')
+        print(err_info)
+        print()
     finally:
         cleanup()
 
@@ -293,12 +294,27 @@ def file_read_port(file:str) -> Port:
     assert port > 0
     return port
 
+def str_to_port(data:str) -> Port:
+    port = int(data)
+    assert port > 0
+    return port
+
 ######
 ###### serialisation: addr
 ######
 
 def addr_to_str(addr:Addr) -> str:
-    return addr_to_bytes(addr).decode()
+    addr_bytes = addr_to_bytes(addr)
+    sep = b';'
+    assert addr_bytes.endswith(sep)
+    addr_bytes = addr_bytes[:-len(sep)]
+    return addr_bytes.decode()
+
+def str_to_addr(addr_str:str) -> Addr:
+    sep = ';'
+    ip, port_str = addr_str.split(sep)
+    port = str_to_port(port_str)
+    return ip, port
 
 def file_write_addr(file:str, addr:Addr) -> None:
     data = addr_to_bytes(addr)
@@ -352,7 +368,7 @@ def folder_deserialise(root:str) -> list[Any]:
     return ret
 
 ######
-###### echo
+###### output
 ######
 
 def echo(*a:Any, **kw:Any) -> None:

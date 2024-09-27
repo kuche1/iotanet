@@ -11,7 +11,7 @@ from util import Addr, Public_key, Node
 
 from a_send_1way import ITER_SLEEP_SEC
 from c_circular import send_circular
-from d_lib_peer import peer_addr_to_node, peer_get_random_nodes_based_on_reliability, peer_me, peer_increase_queries_sent, peer_create_or_update
+from d_lib_peer import peer_addr_to_node, peer_me, peer_increase_queries_sent, peer_create_or_update, peer_get_random_alive_nodes
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 
@@ -48,8 +48,8 @@ def handle_folder(root:str) -> None:
 
     dest = peer_addr_to_node(dest_addr)
 
-    path:list[Node] = peer_get_random_nodes_based_on_reliability(extra_hops)
-    split_idx = random.randint(0, len(path)-1)
+    path:list[Node] = peer_get_random_alive_nodes(extra_hops)
+    split_idx = random.randint(0, len(path))
     path_to_dest = path[:split_idx] + [dest]
     path_way_back = path[split_idx:] + [peer_me()]
 

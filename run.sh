@@ -28,12 +28,12 @@
         ./c_circular.py \
         ./d_lib_peer.py \
         ./e_lib_query.py \
-        ./g_peer_check_alive.py \
         ./h_peer_send_measure.py \
         ./i_peer_recv_measure.py \
         ./k_query_recv_process.py \
         ./m_query_send.py \
-        ./m_query_send_test.py
+        ./m_query_send_test.py \
+        ./o_peer_check_alive.py
 
     ./util.py
     ./a_send_1way.py &
@@ -41,11 +41,11 @@
     sleep 0.1
     ./c_circular.py &
     ./d_lib_peer.py
-    #./g_peer_check_alive.py &
     ./h_peer_send_measure.py &
     ./i_peer_recv_measure.py &
     ./k_query_recv_process.py &
     ./m_query_send.py &
+    ./o_peer_check_alive.py &
 
     echo '~~{{(( all started ))}}~~'
 

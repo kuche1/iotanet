@@ -4,7 +4,7 @@ from util import Addr, Symetric_key
 
 from a_send_1way import create_send_entry
 from b_recv_1way import encrypt_symetric, FILE_PUBLIC_KEY
-from d_lib_peer import peer_bytes_to_list_of_nodes, peer_create_or_update, peer_all_nodes_to_bytes
+from d_lib_peer import peer_bytes_to_list_of_nodes, peer_create_or_update, peer_all_known_nodes_to_bytes, peer_mark_alive
 
 QUERY_TYPE_GIVE_ME_YOUR_PUBLIC_KEY = b'0'
 
@@ -29,7 +29,7 @@ def answer_to_query(query_type:bytes, query:bytes, sym_key:Symetric_key, addr:Ad
     elif query_type == QUERY_TYPE_GIVE_ME_THE_PEERS_YOU_KNOW:
 
         assert len(query) == 0
-        resp = peer_all_nodes_to_bytes()
+        resp = peer_all_known_nodes_to_bytes()
     
     elif query_type == QUERY_TYPE_CHECK_ALIVE:
 
@@ -81,7 +81,8 @@ def process_query_answer(query_type:bytes, response:bytes, responder_addr:Addr, 
     elif query_type == QUERY_TYPE_CHECK_ALIVE:
 
         assert response == QUERY_TYPE_CHECK_ALIVE_YES
-        # TODO0 add to the alive list
+        peer_mark_alive(responder_addr)
+        print(f'{responder_addr} is alive')
 
     else:
 

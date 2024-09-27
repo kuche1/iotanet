@@ -6,4 +6,5 @@ _port
 _to_send
 
 __pycache__/
-_peers/
+_peers_known/
+_peers_alive/

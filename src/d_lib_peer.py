@@ -3,6 +3,7 @@
 import os
 import random
 import argparse
+import shutil
 
 import util
 from util import Addr, Public_key, Node
@@ -11,7 +12,8 @@ from b_recv_1way import FILE_PUBLIC_KEY, FILE_PORT
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 
-FOLDER_PEERS = f'{HERE}/_peers'
+FOLDER_PEERS_KNOWN = f'{HERE}/_peers_known'
+FOLDER_PEERS_ALIVE = f'{HERE}/_peers_alive'
 
 PEER_FILENAME_PUBLIC_KEY = 'public_key'
 PEER_FILENAME_QUERIES_SENT = 'queries_sent'
@@ -20,7 +22,7 @@ PEER_FILENAME_QUERIES_ANSWERED = 'queries_answered'
 ### creation / update
 
 def peer_create_or_update(addr:Addr, pub:Public_key) -> None:
-    peer_folder = peer_get_folder_by_addr(addr)
+    peer_folder = peer_get_known_folder_by_addr(addr)
 
     os.makedirs(peer_folder, exist_ok=True)
 
@@ -36,7 +38,7 @@ def peer_create_or_update(addr:Addr, pub:Public_key) -> None:
         util.file_write_int(file_queries_answered, 0)
 
 def peer_increase_queries_sent(addr:Addr) -> None:
-    peer_folder = peer_get_folder_by_addr(addr)
+    peer_folder = peer_get_known_folder_by_addr(addr)
     file = f'{peer_folder}/{PEER_FILENAME_QUERIES_SENT}'
     util.file_increase(file)
 
@@ -44,58 +46,43 @@ def peer_increase_queries_sent(addr:Addr) -> None:
 # should we really expect the server to return an answer
 # regardless?
 def peer_increase_queries_answered(addr:Addr) -> None:
-    peer_folder = peer_get_folder_by_addr(addr)
+    peer_folder = peer_get_known_folder_by_addr(addr)
 
     file = f'{peer_folder}/{PEER_FILENAME_QUERIES_ANSWERED}'
     util.file_increase(file)
 
 ### FS
 
-def peer_get_node_folders() -> list[str]:
+def peer_get_known_node_folders() -> list[str]:
     folders:list[str] = []
-    for path, folders, _files in os.walk(FOLDER_PEERS):
+    for path, folders, _files in os.walk(FOLDER_PEERS_KNOWN):
         folders = [f'{path}/{folder}' for folder in folders]
         break
     return folders
 
-# TODO rename to get_nodeS_and_reliabilitIES
-def peer_get_node_and_reliability() -> list[tuple[Node, int, int]]:
+def peer_get_alive_node_folders() -> list[str]:
+    folders:list[str] = []
+    for path, _folders, files in os.walk(FOLDER_PEERS_ALIVE):
+        files = [f'{path}/{file}' for file in files]
+        break
+    return files
 
-    folders = peer_get_node_folders()
-    
+def peer_get_known_addrs() -> list[Addr]:
     ret = []
-
-    for folder_path in folders:
-
-        peer_addr_str = os.path.basename(folder_path)
-
-        peer_addr, nothing = util.chop_addr_from_str(peer_addr_str)
-        assert len(nothing) == 0
-
-        peer_pub = util.file_read_public_key(f'{folder_path}/{PEER_FILENAME_PUBLIC_KEY}')
-
-        node = (peer_addr, peer_pub)
-
-        queries_sent = util.file_read_int(f'{folder_path}/{PEER_FILENAME_QUERIES_SENT}')
-
-        queries_answered = util.file_read_int(f'{folder_path}/{PEER_FILENAME_QUERIES_ANSWERED}')
-
-        ret.append((node, queries_answered, queries_sent))
-    
+    for folder in peer_get_known_node_folders():
+        addr = util.str_to_addr(os.path.basename(folder))
+        ret.append(addr)
     return ret
 
-def peer_all_nodes_to_bytes() -> bytes:
+def peer_all_known_nodes_to_bytes() -> bytes:
 
-    all_peer_folders = peer_get_node_folders()
+    all_peer_folders = peer_get_known_node_folders()
 
     ret = util.int_to_bytes(len(all_peer_folders))
 
     for peer_folder in all_peer_folders:
 
-        addr_str = os.path.basename(peer_folder)
-
-        addr, nothing = util.chop_addr_from_str(addr_str)
-        assert len(nothing) == 0
+        addr = util.str_to_addr(os.path.basename(peer_folder))
 
         pub = util.file_read_public_key(f'{peer_folder}/{PEER_FILENAME_PUBLIC_KEY}')
 
@@ -121,7 +108,7 @@ def peer_bytes_to_list_of_nodes(data:bytes) -> list[Node]:
     return ret
 
 def peer_addr_to_node(addr:Addr) -> Node:
-    peer_folder = peer_get_folder_by_addr(addr)
+    peer_folder = peer_get_known_folder_by_addr(addr)
 
     file_pub = f'{peer_folder}/{PEER_FILENAME_PUBLIC_KEY}'
     pub = util.file_read_public_key(file_pub)
@@ -133,44 +120,59 @@ def peer_me() -> Node:
     port = util.file_read_port(FILE_PORT)
     return ('127.0.0.1', port), pub
 
+### alive/dead status
+
+def peer_mark_alive(addr:Addr) -> None:
+    file = f'{FOLDER_PEERS_ALIVE}/{util.addr_to_str(addr)}'
+
+    with open(file, 'w'):
+        pass
+
+# untested
+def peer_mark_dead(addr:Addr) -> None:
+    file = f'{FOLDER_PEERS_ALIVE}/{util.addr_to_str(addr)}'
+    util.rmtree(file)
+
 ### util
 
-# TODO keep in mind that your (real) reliability is going
-# to be 100% so you might end up in a situation where you're
-# routing all the traffic on your own node
-def peer_get_random_nodes_based_on_reliability(num:int) -> list[Node]:
+def peer_get_random_alive_nodes(num:int) -> list[Node]:
+    assert num >= 0
 
-    node_succ_total = peer_get_node_and_reliability()
+    if num == 0:
+        return []
+
+    node_folders = peer_get_alive_node_folders()
+    assert len(node_folders) > 0
 
     ret = []
-
     for _ in range(num):
-
-        # higher number means higher change to be picked
-        # TODO I REALLY need to think about this formula, so that both (inactive nodes get ignored) and (you can't get exposed by the path you take)
-        # also there need to be some sort of mechanism for getting rid of data that is too old
-        node_succ_total.sort(
-            key=lambda i: random.random() * ( (20 + i[1]) / (20 + i[2]) ),
-            reverse=True,
-        )
-
-        node, _, _ = node_succ_total[0]
-
-        ret.append(node)
-
+        folder = random.choice(node_folders)
+        ret.append(peer_get_node_by_folder(folder))
     return ret
 
-def peer_get_folder_by_addr(addr:Addr) -> str:
+def peer_get_known_folder_by_addr(addr:Addr) -> str:
     folder_name = util.addr_to_str(addr)
-    peer_folder = f'{FOLDER_PEERS}/{folder_name}'
+    peer_folder = f'{FOLDER_PEERS_KNOWN}/{folder_name}'
     return peer_folder
+
+def peer_get_node_by_folder(folder:str) -> Node:
+    addr_str = os.path.basename(folder)
+    addr = util.str_to_addr(addr_str)
+    return peer_addr_to_node(addr)
 
 ######
 ###### main (init)
 ######
 
 def main() -> None:
-    os.makedirs(FOLDER_PEERS, exist_ok=True)
+    os.makedirs(FOLDER_PEERS_KNOWN, exist_ok=True)
+
+    try:
+        shutil.rmtree(FOLDER_PEERS_ALIVE)
+    except FileNotFoundError:
+        pass
+    
+    os.mkdir(FOLDER_PEERS_ALIVE)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('lib: peer')
