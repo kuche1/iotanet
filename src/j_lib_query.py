@@ -4,7 +4,7 @@ from util import Addr, Symetric_key
 
 from a_send_1way import create_send_entry
 from b_recv_1way import encrypt_symetric, FILE_PUBLIC_KEY
-from h_peer_send import peer_bytes_to_list_of_nodes, peer_create_or_update, peer_all_nodes_to_bytes
+from h_peer_send_measure import peer_bytes_to_list_of_nodes, peer_create_or_update, peer_all_nodes_to_bytes
 
 QUERY_TYPE_GIVE_ME_YOUR_PUBLIC_KEY = b'0'
 

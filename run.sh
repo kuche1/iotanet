@@ -27,8 +27,8 @@
         ./b_recv_1way.py \
         ./c_circular.py \
         ./g_peer_check_alive.py \
-        ./h_peer_send.py \
-        ./i_peer_recv.py \
+        ./h_peer_send_measure.py \
+        ./i_peer_recv_measure.py \
         ./j_lib_query.py \
         ./k_query_recv_process.py \
         ./m_query_send.py \
@@ -40,8 +40,8 @@
     sleep 0.1
     ./c_circular.py &
     #./g_peer_check_alive.py &
-    ./h_peer_send.py &
-    ./i_peer_recv.py &
+    ./h_peer_send_measure.py &
+    ./i_peer_recv_measure.py &
     ./k_query_recv_process.py &
     ./m_query_send.py &
 
