@@ -11,9 +11,9 @@ from util import Node, Addr
 
 from a_send_1way import ITER_SLEEP_SEC
 from c_circular import FILENAME_PRIVATE_DATA, FILENAME_RESPONSE, FILENAME_RESPONDER_ADDR
-from e_peer_send import send_measure, peer_bytes_to_list_of_nodes, peer_create_or_update
-from f_peer_recv import FOLDER_RECEIVED_MEASURED
-from g_recv_query import QUERY_TYPE_GIVE_ME_YOUR_PUBLIC_KEY, QUERY_TYPE_PING, QUERY_TYPE_GIVE_ME_THE_PEERS_YOU_KNOW
+from g_peer_send import send_measure, peer_bytes_to_list_of_nodes, peer_create_or_update
+from i_peer_recv import FOLDER_RECEIVED_MEASURED
+from k_recv_query import QUERY_TYPE_GIVE_ME_YOUR_PUBLIC_KEY, QUERY_TYPE_PING, QUERY_TYPE_GIVE_ME_THE_PEERS_YOU_KNOW
 
 ######
 ###### send query

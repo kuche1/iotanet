@@ -9,7 +9,7 @@ from util import echo as print
 
 from a_send_1way import ITER_SLEEP_SEC
 from c_circular import FILENAME_PRIVATE_DATA, FILENAME_RESPONSE, FILENAME_RESPONDER_ADDR, FOLDER_RESPONSES
-from e_peer_send import peer_increase_queries_answered
+from g_peer_send import peer_increase_queries_answered
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 
