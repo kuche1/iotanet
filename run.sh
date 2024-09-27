@@ -8,7 +8,7 @@
     MYPY='mypy --strict --no-incremental'
     # without `--no-incremental` doesnt always work
 
-    cd "$HERE"
+    cd "$HERE/src"
 
     if [ $# -ne 1 ]; then
         echo 'you need to give exactly 1 argument - port'
