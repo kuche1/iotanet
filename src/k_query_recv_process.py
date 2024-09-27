@@ -10,7 +10,7 @@ from util import echo as print
 
 from a_send_1way import ITER_SLEEP_SEC
 from c_circular import FOLDER_REQUESTS, MESSAGE_TYPE_RESPONSE, SEP, FILENAME_ADDR
-from j_lib_query import answer_to_query
+from e_lib_query import answer_to_query
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 

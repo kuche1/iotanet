@@ -27,10 +27,10 @@
         ./b_recv_1way.py \
         ./c_circular.py \
         ./d_lib_peer.py \
+        ./e_lib_query.py \
         ./g_peer_check_alive.py \
         ./h_peer_send_measure.py \
         ./i_peer_recv_measure.py \
-        ./j_lib_query.py \
         ./k_query_recv_process.py \
         ./m_query_send.py \
         ./m_query_send_test.py
