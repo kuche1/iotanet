@@ -8,11 +8,9 @@ from typing import Callable
 import util
 from util import echo as print
 
-from a_send_1way import ITER_SLEEP_SEC, create_send_entry
-from b_recv_1way import encrypt_symetric, FILE_PUBLIC_KEY
+from a_send_1way import ITER_SLEEP_SEC
 from c_circular import FOLDER_REQUESTS, MESSAGE_TYPE_RESPONSE, SEP, FILENAME_ADDR
-from g_peer_send import peer_all_nodes_to_bytes
-from j_lib_query import QUERY_TYPE_GIVE_ME_YOUR_PUBLIC_KEY, QUERY_TYPE_PING, QUERY_TYPE_GIVE_ME_THE_PEERS_YOU_KNOW
+from j_lib_query import answer_to_query
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 
@@ -35,29 +33,7 @@ def receive_answer_query_handle_folder(path:str) -> None:
     query_type = query[0:1]
     query = query[1:]
 
-    if query_type == QUERY_TYPE_GIVE_ME_YOUR_PUBLIC_KEY:
-
-        assert len(query) == 0
-        resp = util.file_read_bytes(FILE_PUBLIC_KEY)
-    
-    elif query_type == QUERY_TYPE_PING:
-
-        resp = b'yes, I got your request: ' + query
-
-    elif query_type == QUERY_TYPE_GIVE_ME_THE_PEERS_YOU_KNOW:
-
-        assert len(query) == 0
-        resp = peer_all_nodes_to_bytes()
-
-    else:
-
-        assert False, f'unknown query type {query_type!r}'
-
-    resp = resp_header + resp
-    resp = encrypt_symetric(resp, sym_key)
-    resp = return_path + resp
-
-    create_send_entry(addr, resp)
+    answer_to_query(query_type, query, sym_key, addr, query_id, return_path, resp_header)
 
 ######
 ###### receive and answer to query: main
