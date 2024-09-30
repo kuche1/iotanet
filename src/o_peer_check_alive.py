@@ -31,6 +31,10 @@ def main() -> None:
             # this CAN be changed to some other number, but someone along the way could drop the packet, and we would need to send multiple messages just to be sure
             # also do note that someone could just look at a singular node, then get info about the whole network if hops=0
             # same goes for the other loops here
+            #
+            # related to asking for peer's own cert:
+            # in fact, if the hops are 0, we're making things much easier for malicious users that want to give specific certs to specific peers
+            # but if it's >0 we're making things much harder, since they don't know who asks for the cert
 
             send_query(QUERY_TYPE_CHECK_ALIVE, b'', b'', peer_addr, extra_hops)
         
