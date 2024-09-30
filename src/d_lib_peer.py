@@ -21,6 +21,7 @@ PEER_FILENAME_QUERIES_ANSWERED = 'queries_answered'
 
 ### creation / update
 
+# TODO check if addr is valid (addr might be 127.0.0.1, port might be invalid)
 def peer_create_or_update(addr:Addr, pub:Public_key) -> None:
     peer_folder = peer_get_known_folder_by_addr(addr)
 
